@@ -1,6 +1,6 @@
 # smb_bench
 SMB Benchmarking Framework for Azure Native Qumulo leveraging [FIO](https://github.com/axboe/fio)
-![SMB Bench Architecture Diagram]https://github.com/qumulokmac/smb_bench/blob/main/docs/smb_bench_diagram_anq.png)
+![SMB Bench Architecture Diagram](https://github.com/qumulokmac/smb_bench/blob/main/docs/smb_bench_diagram_anq.png)
 ---
 ### This document is still a work in progress (WIP)
 ---
