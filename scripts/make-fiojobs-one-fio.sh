@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 ################################################################################
 #
 # make-fiojobs-one-fio.sh
@@ -6,7 +6,7 @@
 # Author:	kmac@qumulo.com
 # Date:		12/15/2023
 #
-# Wrapper script to create batch and FIO ini files for ANQ SMB benchmarking
+# Wrapper script to create batch and FIO ini files
 #
 ################################################################################
 
@@ -15,17 +15,9 @@
 #############################
 
 MOUNTS_PER_CLIENT=14
-JOBS_PER_CLIENT=64
+JOBS_PER_CLIENT=16
 WORKERS_CONF="ini/workers.conf"
-FIO_TEMPLATE="ini/YOUR_INI_FILENAME_GOES_HERE.ini"
-#############################
-
-if [[ ! -e $FIO_TEMPLATE ]]
-then
-  printf "\nFIO Template \"$FIO_TEMPLATE\" does not exist!\n\n"
-  exit 1
-fi
-
+FIO_TEMPLATE="ini/mrcoop-randrw-50rwmix.ini"
 JOBSUITEDIR="jobsuite"
 POSTSCRIPT="${HOME}/scripts/wincp.sh"
 MYRND="$$$RANDOM"
@@ -34,16 +26,20 @@ SUITENAME=`echo $FIO_TEMPLATE | sed -e 's|ini\/||g' | sed -e 's/\.ini//g'`
 RESULTDIR="F:\results\\$SUITENAME-JPC_${JOBS_PER_CLIENT}-MPC_${MOUNTS_PER_CLIENT}"
 
 
+#############################
+
 echo ""
-echo "This will create FIO job files with the following global settings: "
+echo "This will create FIO job files with the following settings: "
 echo ""
 cat $FIO_TEMPLATE
 
 echo ""
-printf "MOUNTS_PER_CLIENT:\t\t\t$MOUNTS_PER_CLIENT\n"
-printf "JOBS_PER_CLIENT:\t\t\t$JOBS_PER_CLIENT\n"
-printf "Number of worker hosts:\t\t`wc -l $WORKERS_CONF`\n"
-printf "Defined Worker hosts:\t\t`wc -l $WORKERS_CONF`\n"
+echo "MOUNTS_PER_CLIENT: $MOUNTS_PER_CLIENT"
+echo "JOBS_PER_CLIENT: $JOBS_PER_CLIENT"
+echo "Number of worker hosts: `wc -l $WORKERS_CONF`"
+echo ""
+echo "Mounted drives: `df -h`"
+echo "Worker hosts: 	`wc -l $WORKERS_CONF`"
 echo "Proceed? [y|n]"
 read answer
 case $answer in
@@ -70,6 +66,8 @@ then
 	echo "Output directory $JOBSUITEDIR exists. Renaming to $RENAMETO"
 	mv  $JOBSUITEDIR $RENAMETO
 fi
+
+
 
 echo ""
 echo "Checking that the result directory ($RESULTDIR) is available..."
@@ -105,6 +103,7 @@ do
 		  DLCOUNT=$((DLCOUNT+1))
 		fi
 		DRIVE_LETTER=`echo $((DLCOUNT+70))| awk '{printf("%c",$1)}'`
+		# echo "DRIVE_LETTER is $DRIVE_LETTER"
 		echo "[job${jobid}]" >> "${BASEDIR}/${FIO_INI_FILENAME}"
 		echo "directory=${DRIVE_LETTER}\\:FIODATA\\${HOSTS[$hostindex]}"  >> "${BASEDIR}/${FIO_INI_FILENAME}"
 		echo "numjobs=1"  >> "${BASEDIR}/${FIO_INI_FILENAME}"
@@ -113,7 +112,11 @@ do
 
 	echo "REM Batch File $WIN_BATCH_FILE " >> "${BASEDIR}/${WIN_BATCH_FILE}"
 	echo "" >> "${BASEDIR}/${WIN_BATCH_FILE}"
-    echo "MKDIR F:\FIODATA\\${HOSTS[$hostindex]} "  >> "${BASEDIR}/${WIN_BATCH_FILE}"
+	
+	echo "if not exist \"F:\FIODATA\\${HOSTS[$hostindex]}\"  MKDIR \"F:\FIODATA\\${HOSTS[$hostindex]}\" " >> "${BASEDIR}/${WIN_BATCH_FILE}"
+	
+	
+    # echo "MKDIR F:\FIODATA\\${HOSTS[$hostindex]} "  >> "${BASEDIR}/${WIN_BATCH_FILE}"
 	echo -n "C:\\fio\\fio-master\\fio --thread --output-format=json --output=${RESULTDIR}\\"  >> "${BASEDIR}/${WIN_BATCH_FILE}"
 	echo "${FIO_LOGFILE} C:\\FIO\\${FIO_INI_FILENAME}" >> "${BASEDIR}/${WIN_BATCH_FILE}"
 	echo -n "."
@@ -135,6 +138,7 @@ do
   for file in `ls -1 ${BASEDIR}/fiorun-*.bat | sort -V` 
   do
     file=`echo $file | sed -e "s|$BASEDIR\/||g" `
+    # echo "Adding bat script $file to ${SPAWNFILE}"
     echo -n "\"C:\FIO\\$file\""  >>${SPAWNFILE}
 	echo ')'  >>${SPAWNFILE}
     count=$((count+1))
