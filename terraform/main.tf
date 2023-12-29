@@ -5,24 +5,6 @@
 # Author:   kmac@qumulo.com
 # Desc:     Provision multiple azurerm_windows_virtual_machine"s leveraging a prebuilt image
 #
-# variables.tf:
-#   1/ resource_group_location:     Which region to deploy in, E.g. "eastus"
-#   2/ common_prefix:               String to be prepended to all cloud object names created in project
-#   3/ num_vms:                     The number of VM"s to deploy
-#   4/ os_image_id                  Image ID to use for the windows OS build
-#   5/ vmsize:                      Virtual Machine Size to use, E.g. "Standard_D2s_v3"
-#   6/ admin_username               Windows local admin username
-#   7/ admin_password               Windows local admin password
-#   8/ powershell_script            Powershell script filename
-#
-# outputs.tf:
-#   - resource_group_name
-#   - virtual_network_name
-#   - subnet_name
-#   - public_ips
-#   - private_ips
-#   - azurerm_windows_virtual_machine"s
-#
 ################################################################################
 
 ###
@@ -80,47 +62,47 @@ resource "azurerm_network_security_group" "nsg" {
   depends_on           = [azurerm_subnet.subnet]
 
   security_rule {
-    name                       = "AllowKMAcsHomeSSHAccess"
+    name                       = "AllowHomeSSHAccess"
     priority                   = 1000
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "98.193.213.172/32"
+    source_address_prefix      = "YOUR_HOME_IP_ADDRESS"
     destination_address_prefix = "*"
   }
   security_rule {
-    name                       = "AllowKMAcsHomeHTTPAccess"
+    name                       = "AllowHomeHTTPAccess"
     priority                   = 1010
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "80"
-    source_address_prefix      = "98.193.213.172/32"
+    source_address_prefix      = "YOUR_HOME_IP_ADDRESS"
     destination_address_prefix = "*"
   }
    security_rule {
-    name                       = "AllowKMAcsHomeHTTPSAccess"
+    name                       = "AllowHomeHTTPSAccess"
     priority                   = 1020
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "443"
-    source_address_prefix      = "98.193.213.172/32"
+    source_address_prefix      = "YOUR_HOME_IP_ADDRESS"
     destination_address_prefix = "*"
   }
  security_rule {
-    name                       = "AllowKMAcsHomeRDPAccess"
+    name                       = "AllowHomeRDPAccess"
     priority                   = 1030
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "3389"
-    source_address_prefix      = "98.193.213.172/32"
+    source_address_prefix      = "YOUR_HOME_IP_ADDRESS"
     destination_address_prefix = "*"
   }
 }
@@ -154,45 +136,46 @@ resource "azurerm_network_interface_security_group_association" "nic-nsg-assn" {
 }
 
 ###
-# vNet Peering for ANQ access
+# vNet Peering for cluster access
+# Note: Set the remote vnet id to the vnet hosting your ANQ cluster, if needed
 ###
 
-resource "azurerm_virtual_network_peering" "wrks2anq-peer" {
-  name                      = "wrks2anq-peer"
+resource "azurerm_virtual_network_peering" "wrks2stg-peer" {
+  name                      = "wrks2stg-peer"
   resource_group_name       = azurerm_resource_group.rg.name
   virtual_network_name      = azurerm_virtual_network.vnet.name
-  remote_virtual_network_id = "/subscriptions/2f0fe240-4ebb-45eb-8307-9f54ae213157/resourceGroups/crucible/providers/Microsoft.Network/virtualNetworks/anq-net"
+  remote_virtual_network_id = "/subscriptions/2f0fe240-4ebb-45eb-8307-9f54ae213157/resourceGroups/prod_gns_infra/providers/Microsoft.Network/virtualNetworks/qumulo-product-vnet"
   depends_on                 = [azurerm_subnet.subnet]
 
 }
 
-resource "azurerm_virtual_network_peering" "anq2wrks-peer" {
-  name                      = "anq2wrks-peer"
-  resource_group_name       = "crucible"
-  virtual_network_name      = "anq-net"
+resource "azurerm_virtual_network_peering" "stg2wrks-peer" {
+  name                      = "stg2wrks-peer"
+  resource_group_name       = "prod_gns_infra"
+  virtual_network_name      = "qumulo-product-vnet"
   remote_virtual_network_id = azurerm_virtual_network.vnet.id
   depends_on                 = [azurerm_subnet.subnet]
 
 }
 
 ###
-# Worker VM"s
+# Worker VM"s (Uses SPOT for VM's)
 ###
 resource "azurerm_windows_virtual_machine" "vm" {
-  count                 = "${var.num_vms}"
-  name                  = "${var.common_prefix}-${count.index}"
-  admin_username        = "${var.admin_username}" 
-  admin_password        = "${var.admin_password}" 
-  location              = azurerm_resource_group.rg.location
-  resource_group_name   = azurerm_resource_group.rg.name
-  network_interface_ids = ["${azurerm_network_interface.nic.*.id[count.index]}"]
-  size                  = "${var.vmsize}" 
-  timezone              = "Central Standard Time"
-  priority		= "Spot"
-  eviction_policy	= "Delete"
-  zone                  = 1
-  source_image_id       = "${var.os_image_id}" 
-  depends_on             = [azurerm_virtual_network_peering.wrks2anq-peer,azurerm_virtual_network_peering.anq2wrks-peer]
+  count                  = "${var.num_vms}"
+  name                   = "${var.common_prefix}-${count.index}"
+  admin_username         = "${var.admin_username}" 
+  admin_password         = "${var.admin_password}" 
+  location               = azurerm_resource_group.rg.location
+  resource_group_name    = azurerm_resource_group.rg.name
+  network_interface_ids  = ["${azurerm_network_interface.nic.*.id[count.index]}"]
+  size                   = "${var.vmsize}" 
+  timezone               = "Central Standard Time"
+  priority		           = "Spot"
+  eviction_policy	       = "Delete"
+  zone                   = 1
+  source_image_id        = "${var.os_image_id}" 
+  depends_on             = [azurerm_virtual_network_peering.wrks2stg-peer,azurerm_virtual_network_peering.stg2wrks-peer]
 
   os_disk {
     name                 = "${var.common_prefix}-osdisk${count.index}"
@@ -269,7 +252,7 @@ resource "azurerm_windows_virtual_machine" "maestro_vm" {
   timezone              = "Central Standard Time"
   zone                  = 1
   source_image_id       = "${var.os_image_id}" 
-  depends_on             = [azurerm_virtual_network_peering.wrks2anq-peer,azurerm_virtual_network_peering.anq2wrks-peer]
+  depends_on             = [azurerm_virtual_network_peering.wrks2stg-peer,azurerm_virtual_network_peering.stg2wrks-peer]
 
   os_disk {
     name                 = "${var.common_prefix}-osdisk"
