@@ -24,12 +24,17 @@
 ####################################################################################################
 # User Configuration Section
 ####################################################################################################
-$runname = "refactoring"
+$runname = "YOUR_UNIQUE_RUN_IDENTIFIER_HERE"
 $nodeconf = 'C:\FIO\nodes.conf'
 $wrkrconf = 'C:\FIO\workers.conf'
-$password = "P@55w0rd123!"
-$username = "qumulo"
-$sharename = "test"
+$password = "YOUR_PASSWORD_HERE
+$username = "YOUR_USERNAME_HERE"
+$sharename = "YOUR_SHARENAME_HERE"
+
+# Azure credentials: 
+$AzureAccountName ="YOUR_AZURE_ACCOUNTNAME_HERE"
+$Container = "YOUR_AZURE_CONTAINER_HERE"
+$AzureAccountKey ="YOUR_AZURE_ACCOUNT_KEY_HERE"
 
 ####################################################################################################
 # Setup [Do not change settings below this line]
@@ -40,9 +45,6 @@ $nodes = [string[]](Get-Content $nodeconf)
 $jobArray = New-Object -TypeName System.Collections.ArrayList
 $maxnodes=(Get-Content $nodeconf | Measure-Object –Line).Count  
 $DTS = Get-Date -UFormat "%Y/%m/%d/%H"
-$AzureAccountName ="smbbench"
-$Container = "fio-results"
-$AzureAccountKey ="Ppfj1erZJwwH0aiXp6m4WtvFuGcHVi6AHTn94OSAcVVcRtTGQpdJ3DZVN+pJwU+tWgfp+9PwIzRj+ASt7Mbrrg=="  
 
 Clear-Host
 

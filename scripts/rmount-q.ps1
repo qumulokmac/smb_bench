@@ -1,5 +1,8 @@
 
 ###
+# Helper script to mount all SMB shares, depricated
+###
+###
 # Configuration Section
 ###
 $nodeconf = 'C:\FIO\nodes.conf'
