@@ -31,8 +31,13 @@ declare -i NUMJOBS=0
 printf "Analyzing JSON logs in ${DIRECTORY}\n"
 for file in `find ${DIRECTORY} -name "*.json" -type f `
 do
-  printf '.'
-  NUMJOBS=$(($NUMJOBS+`jq -r '.jobs | length' $file`))
+  # printf "NUMJOBS is $NUMJOBS precall for $file.\n"
+
+
+  BLANK=`jq -r '.jobs | length' ${file} `
+  NUMJOBS=`echo ${NUMJOBS}+${BLANK} | bc`
+  # printf "NUMJOBS is $NUMJOBS postcall.\n\n"
+
   RIOPS=`jq -r '[.. | objects | .read.iops] | add' $file`
   WIOPS=`jq -r '[.. | objects | .write.iops] | add' $file`
   READ_BW=`jq -r '[.. | objects | .read.bw] | add' $file`
@@ -55,6 +60,7 @@ do
   TOTAL_WRITE_LATENCY_P99=`echo ${WRITE_LATENCY_P99}+${TOTAL_WRITE_LATENCY_P99} | bc`
 
 done
+
 TOTAL_READ_IOPS=${TOTAL_READ_IOPS%.*}
 TOTAL_WRITE_IOPS=${TOTAL_WRITE_IOPS%.*}
 TOTAL_READ_BW=${TOTAL_READ_BW%.*}

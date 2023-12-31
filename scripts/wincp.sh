@@ -1,10 +1,10 @@
 #!/bin/bash
 
 ###
-# copy results from $HOME/smb_bench/jobsuite to  /cygdrive/f/stage
+# copy results from $HOME/smb_bench/jobsuite to  /cygdrive/a/ini
 ###
 SOURCE="$HOME/jobsuite"
-DEST="/cygdrive/f/stage"
+DEST="/cygdrive/a/ini"
 
 if [ ! -e  ${DEST} ]
 then
@@ -19,4 +19,4 @@ echo "Copying job suite to ${DEST}"
 cp -rp ${SOURCE}/* ${DEST}
 
 echo "Setting windows ACL's on ${DEST}"
-getfacl   /cygdrive/c/Users/desktop.ini | setfacl -f - /cygdrive/f/stage/*
+getfacl   /cygdrive/c/Users/desktop.ini | setfacl -f - /cygdrive/a/ini/*

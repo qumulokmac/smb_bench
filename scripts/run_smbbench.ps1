@@ -24,17 +24,17 @@
 ####################################################################################################
 # User Configuration Section
 ####################################################################################################
-$runname = "YOUR_UNIQUE_RUN_IDENTIFIER_HERE"
+$UNIQUE_RUN_IDENTIFIER = "mrcooper"
 $nodeconf = 'C:\FIO\nodes.conf'
 $wrkrconf = 'C:\FIO\workers.conf'
-$password = "YOUR_PASSWORD_HERE
-$username = "YOUR_USERNAME_HERE"
-$sharename = "YOUR_SHARENAME_HERE"
+$password = "P@55w0rd123!"
+$username = "localadmin"
+$sharename = "mrcooper"
 
 # Azure credentials: 
-$AzureAccountName ="YOUR_AZURE_ACCOUNTNAME_HERE"
-$Container = "YOUR_AZURE_CONTAINER_HERE"
-$AzureAccountKey ="YOUR_AZURE_ACCOUNT_KEY_HERE"
+$AzureAccountName ="smbbench"
+$Container = "fio-results"
+$AzureAccountKey = "Ppfj1erZJwwH0aiXp6m4WtvFuGcHVi6AHTn94OSAcVVcRtTGQpdJ3DZVN+pJwU+tWgfp+9PwIzRj+ASt7Mbrrg=="  
 
 ####################################################################################################
 # Setup [Do not change settings below this line]
@@ -43,14 +43,14 @@ $password = ConvertTo-SecureString $password -AsPlainText -Force
 $Cred = New-Object System.Management.Automation.PSCredential ($username, $password)
 $nodes = [string[]](Get-Content $nodeconf)
 $jobArray = New-Object -TypeName System.Collections.ArrayList
-$maxnodes=(Get-Content $nodeconf | Measure-Object –Line).Count  
+$maxnodes=(Get-Content $nodeconf | Measure-Object Line).Count
 $DTS = Get-Date -UFormat "%Y/%m/%d/%H"
 
 Clear-Host
 
 foreach($myhost in Get-Content $wrkrconf) 
 {
-  Write-Host "Unmounting all mapped drives on: ${myhost}" -ForegroundColor Green 
+  Write-Host "Unmounting all mapped drives on: "${myhost} -ForegroundColor Green 
   Invoke-Command -Computer $myhost -scriptblock { Get-SmbMapping | Remove-SmbMapping -UpdateProfile -Force 2>$null  }
 }
 
@@ -62,7 +62,7 @@ foreach($myhost in Get-Content $wrkrconf)
 { 
 
   Write-Host "${myhost}:" -ForegroundColor Cyan
-  Write-Host "`tMounting the A Drive on ${myhost}" -ForegroundColor Green
+  Write-Host "`tMounting the SMB shares on ${myhost}" -ForegroundColor Green
 
   $SMBServer = $nodes[0]
   $myunc = -join("\\", $SMBServer, "\", $sharename)
@@ -73,37 +73,43 @@ foreach($myhost in Get-Content $wrkrconf)
   $RRun = { 
       param($Cred, $myunc, $driveletter, $myhost)
       New-PSDrive -Name $driveletter -Root $myunc -Persist -PSProvider "FileSystem" -Credential $Cred | out-null
-      Copy-Item "A:\INI\$myhost_*" -Destination "C:\FIO"
+      Copy-Item "A:\INI\$myhost_*", "A:\config\*" -Destination C:\FIO
+
   }
   Invoke-Command -ComputerName $myhost -ScriptBlock $RRun -ArgumentList $Cred,$myunc,$driveletter,$myhost -Credential $Cred
  
-  $workerScript = Get-Command "C:\FIO\workerScript.ps1" | select -ExpandProperty ScriptBlock 
-  Write-Host -NoNewline "`tStarting FIO job (background) on " -ForegroundColor Green
-  Write-Host "${myhost}" -ForegroundColor Cyan
+  $scriptContent = Get-Content -Path 'C:\FIO\workerScript.ps1' -Raw
+  $workerScript = [ScriptBlock]::Create($scriptContent)
 
-  $job = Invoke-Command -ComputerName $myhost -ScriptBlock $workerScript -ArgumentList $Cred,$myhost,$sharename,$runname -Credential $Cred -AsJob -JobName "${myhost}_${runname}_fio"
+  Write-Host "`tStarting FIO on " -NoNewline -ForegroundColor Green 
+
+  Write-Host ${myhost} -ForegroundColor Cyan
+
+  $job = Invoke-Command -ComputerName $myhost -ScriptBlock $workerScript -ArgumentList $Cred,$myhost,$sharename,$UNIQUE_RUN_IDENTIFIER -Credential $Cred -AsJob -JobName "${myhost}_${UNIQUE_RUN_IDENTIFIER}_fio"
   $jobArray.Add($job.Id) | Out-Null
-  $job | Format-List | Out-File -Width 2000 -FilePath "C:\FIO\${myhost}_${runname}_workerscript.out" 
+  $job | Format-List | Out-File -Width 2000 -FilePath "C:\FIO\${myhost}_${UNIQUE_RUN_IDENTIFIER}_workerscript.out" 
 
 }
 Write-Host "`tWaiting on the fio jobs [${jobArray}] to complete`n" -ForegroundColor Blue -BackgroundColor Yellow 
+Write-Host "`n`n"
 Wait-Job  $jobArray | Receive-Job
 
 ################################################################################################
 #  Upload results
 ################################################################################################
+
+
 Write-Host "`nGathering results"
 
 $Context = New-AzStorageContext -StorageAccountName $AzureAccountName -StorageAccountKey $AzureAccountKey    
 
-foreach($myhost in Get-Content $wrkrconf) 
+foreach($myhost in Get-Content $wrkrconf)
 { 
-    $FilePath = "A:\results\${myhost}_${runname}_smbbench-results.json"
-    $FileName = Split-Path -Path $path -Leaf
-    $BlobName = "${runname}/${DTS}/${myhost}/${FileName}"
+    $FilePath = "A:\results\${myhost}_${UNIQUE_RUN_IDENTIFIER}_smbbench-results.json"
+    $FileName = Split-Path -Path $FilePath -Leaf
+    $BlobName = "${UNIQUE_RUN_IDENTIFIER}/${DTS}/${myhost}/${FileName}"
 
-    Write-Host "Uploading $FilePath --> [${AzureAccountName}/${Container}]/${BlobName}" -ForegroundColor Yellow 
+    Write-Host "Uploading $FilePath to [${AzureAccountName}/${Container}]/${BlobName}" -ForegroundColor Yellow 
 
-    Set-AzStorageBlobContent -Container $Container -File $FilePath -Blob $BlobName -Context $Context -Force  | Out-File -Append -Width 2000 -FilePath "C:\FIO\${myhost}_${runname}_azureupload.out" 
-}
- 
+    Set-AzStorageBlobContent -Container $Container -File $FilePath -Blob $BlobName -Context $Context -Force  | Out-File -Append -Width 2000 -FilePath "C:\FIO\${myhost}_${UNIQUE_RUN_IDENTIFIER}_azureupload.out"
+} 
