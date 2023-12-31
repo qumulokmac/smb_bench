@@ -1,4 +1,4 @@
- ####################################################################################################
+  ####################################################################################################
 # SMB Bench Worker Script
 #
 # Author: kmac@qumulo.com
@@ -29,7 +29,7 @@ $nodes = [string[]](Get-Content $nodeconf)
 foreach ($node in Get-Content $nodeconf) 
 {
     $SMBServer = $nodes[$maxnodes--]
-    $myunc = Join-Path -Path "\\$SMBServer\$sharename" -ChildPath ""
+    $myunc = "\\${SMBServer}\${sharename}"
     $driveletter = [char](65+$index++)
 
     Write-Host "${myhost}`: Mounting SMB share $myunc on ${driveletter}`:" -ForegroundColor yellow
@@ -42,9 +42,9 @@ Write-Host "`nLaunching FIO on $myhost`n" -ForegroundColor yellow
 
 ####################################################################################################
 
-$ResultFileName = "C:\FIO\$myhost\_${runname}_smbbench-results.json"
+$ResultFileName = "C:\FIO\${myhost}_${runname}_smbbench-results.json"
 
-$command = "cmd.exe /c c:\FIO\fio-master\fio.exe --output=`"$ResultFileName`" --output-format=json C:\FIO\${myhost}_${runname}_smbbench.ini"
+$command = "cmd.exe /c c:\FIO\fio-master\fio.exe --thread --output=`"$ResultFileName`" --output-format=json C:\FIO\${myhost}_${runname}_smbbench.ini"
 
 Invoke-Expression $command
 Copy-Item -Path $ResultFileName -Destination "F:\results"
