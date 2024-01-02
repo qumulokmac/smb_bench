@@ -62,47 +62,47 @@ resource "azurerm_network_security_group" "nsg" {
   depends_on           = [azurerm_subnet.subnet]
 
   security_rule {
-    name                       = "AllowHomeSSHAccess"
+    name                       = "AllowYOURHomeSSHAccess"
     priority                   = 1000
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "YOUR_HOME_IP_ADDRESS"
+    source_address_prefix      = "${var.remote_allow_ipaddress}"
     destination_address_prefix = "*"
   }
   security_rule {
-    name                       = "AllowHomeHTTPAccess"
+    name                       = "AllowYOURHomeHTTPAccess"
     priority                   = 1010
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "80"
-    source_address_prefix      = "YOUR_HOME_IP_ADDRESS"
+    source_address_prefix      = "${var.remote_allow_ipaddress}"
     destination_address_prefix = "*"
   }
    security_rule {
-    name                       = "AllowHomeHTTPSAccess"
+    name                       = "AllowYOURHomeHTTPSAccess"
     priority                   = 1020
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "443"
-    source_address_prefix      = "YOUR_HOME_IP_ADDRESS"
+    source_address_prefix      = "${var.remote_allow_ipaddress}"
     destination_address_prefix = "*"
   }
  security_rule {
-    name                       = "AllowHomeRDPAccess"
+    name                       = "AllowYOURHomeRDPAccess"
     priority                   = 1030
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "3389"
-    source_address_prefix      = "YOUR_HOME_IP_ADDRESS"
+    source_address_prefix      = "${var.remote_allow_ipaddress}"
     destination_address_prefix = "*"
   }
 }
@@ -132,50 +132,46 @@ resource "azurerm_network_interface_security_group_association" "nic-nsg-assn" {
   count                     = "${var.num_vms}"
   network_interface_id      = "${azurerm_network_interface.nic.*.id[count.index]}"
   network_security_group_id = azurerm_network_security_group.nsg.id
-  depends_on                 = [azurerm_subnet.subnet]
+  depends_on                = [azurerm_subnet.subnet]
 }
 
 ###
-# vNet Peering for cluster access
-# Note: Set the remote vnet id to the vnet hosting your ANQ cluster, if needed
+# vNet Peering for ANQ access
 ###
-
-resource "azurerm_virtual_network_peering" "wrks2stg-peer" {
-  name                      = "wrks2stg-peer"
+resource "azurerm_virtual_network_peering" "wrks2anq-peer" {
+  name                      = "wrks2anq-peer"
   resource_group_name       = azurerm_resource_group.rg.name
   virtual_network_name      = azurerm_virtual_network.vnet.name
-  remote_virtual_network_id = "/subscriptions/2f0fe240-4ebb-45eb-8307-9f54ae213157/resourceGroups/prod_gns_infra/providers/Microsoft.Network/virtualNetworks/qumulo-product-vnet"
-  depends_on                 = [azurerm_subnet.subnet]
+  remote_virtual_network_id = "${var.anq_vnet_network_id}"
+  depends_on                = [azurerm_subnet.subnet]
 
 }
-
-resource "azurerm_virtual_network_peering" "stg2wrks-peer" {
-  name                      = "stg2wrks-peer"
-  resource_group_name       = "prod_gns_infra"
-  virtual_network_name      = "qumulo-product-vnet"
+resource "azurerm_virtual_network_peering" "anq2wrks-peer" {
+  name                      = "anq2wrks-peer"
+  resource_group_name       = "${var.anq_resourcegroup}"
+  virtual_network_name      = "${var.anq_vnet}"
   remote_virtual_network_id = azurerm_virtual_network.vnet.id
   depends_on                 = [azurerm_subnet.subnet]
-
 }
 
 ###
-# Worker VM"s (Uses SPOT for VM's)
+# Worker VM"s
 ###
 resource "azurerm_windows_virtual_machine" "vm" {
-  count                  = "${var.num_vms}"
-  name                   = "${var.common_prefix}-${count.index}"
-  admin_username         = "${var.admin_username}" 
-  admin_password         = "${var.admin_password}" 
-  location               = azurerm_resource_group.rg.location
-  resource_group_name    = azurerm_resource_group.rg.name
-  network_interface_ids  = ["${azurerm_network_interface.nic.*.id[count.index]}"]
-  size                   = "${var.vmsize}" 
-  timezone               = "Central Standard Time"
-  priority		           = "Spot"
-  eviction_policy	       = "Delete"
-  zone                   = 1
-  source_image_id        = "${var.os_image_id}" 
-  depends_on             = [azurerm_virtual_network_peering.wrks2stg-peer,azurerm_virtual_network_peering.stg2wrks-peer]
+  count                 = "${var.num_vms}"
+  name                  = "${var.common_prefix}-${count.index}"
+  admin_username        = "${var.admin_username}" 
+  admin_password        = "${var.admin_password}" 
+  location              = azurerm_resource_group.rg.location
+  resource_group_name   = azurerm_resource_group.rg.name
+  network_interface_ids = ["${azurerm_network_interface.nic.*.id[count.index]}"]
+  size                  = "${var.vmsize}" 
+  timezone              = "Central Standard Time"
+  priority		= "Spot"
+  eviction_policy	= "Delete"
+  zone                  = 1
+  source_image_id       = "${var.os_image_id}" 
+  depends_on             = [azurerm_virtual_network_peering.wrks2anq-peer,azurerm_virtual_network_peering.anq2wrks-peer]
 
   os_disk {
     name                 = "${var.common_prefix}-osdisk${count.index}"
@@ -183,25 +179,6 @@ resource "azurerm_windows_virtual_machine" "vm" {
     storage_account_type = "Standard_LRS"
   }
 }
-
-###
-# Disable the firewall on worker hosts
-###
-# resource "azurerm_virtual_machine_extension" "disablefirewall" {
-#      count                = "${var.num_vms}"
-#      name                 = "${var.common_prefix}-fw-${count.index}"
-#      virtual_machine_id   = "${element(azurerm_windows_virtual_machine.vm.*.id, count.index )}"
-#      publisher            = "Microsoft.Compute"
-#      type                 = "CustomScriptExtension"
-#      type_handler_version = "1.10"
-#      depends_on            = [azurerm_windows_virtual_machine.vm]
-# 
-#      protected_settings = <<PROT
-#      {
-#          "script": "${base64encode(file(var.powershell_script))}"
-#      }
-#      PROT
-#  }
 
 ################################################################################
 # Maestro Server, Public & Private IP"s, Association, VM
@@ -252,7 +229,7 @@ resource "azurerm_windows_virtual_machine" "maestro_vm" {
   timezone              = "Central Standard Time"
   zone                  = 1
   source_image_id       = "${var.os_image_id}" 
-  depends_on             = [azurerm_virtual_network_peering.wrks2stg-peer,azurerm_virtual_network_peering.stg2wrks-peer]
+  depends_on             = [azurerm_virtual_network_peering.wrks2anq-peer,azurerm_virtual_network_peering.anq2wrks-peer]
 
   os_disk {
     name                 = "${var.common_prefix}-osdisk"

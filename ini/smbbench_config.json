@@ -1,0 +1,67 @@
+{
+  "product": "SMB Bench",
+  "version": 0.1,
+  "releaseDate": "2024-01-01T00:00:00.000Z",
+  "smbbench_settings": [
+    {
+      "name": "UNIQUE_RUN_IDENTIFIER",
+      "type": "global",
+      "value": "mrcoop-randrw50",
+      "description": "IMPORTANT! This is the unique identifier for this suite of benchmark tests. Be sure it is succinct & meaningful!"
+    },
+    {
+      "name": "MOUNTS_PER_CLIENT",
+      "type": "cygwin",
+      "value": 16,
+      "description": "Number of SMB Mounts (Unique drive letters) on each host"
+    },
+    {
+      "name": "FIO_NUM_JOBS",
+      "type": "cygwin",
+      "value": 1,
+      "description": "Number of FIO Jobs per host (I.e. JOBS_PER_CLIENT)"
+    },
+    {
+      "name": "FIO_TEMPLATE",
+      "type": "cygwin",
+      "value": "ini/randrw-50rwmix-20KBbs.ini",
+      "description": "Location of the template for FIO (Typically the global section)"
+    },
+    {
+      "name": "LOCALADMIN_PASSWORD",
+      "type": "powershell",
+      "value": "P@55w0rd123!",
+      "description": "Password for the local windows user running the benchmark"
+    },
+    {
+      "name": "LOCALADMIN_USERNAME",
+      "type": "powershell",
+      "value": "localadmin",
+      "description": "Username for the local windows user running the benchmark"
+    },
+    {
+      "name": "AZURE_ACCOUNT_NAME",
+      "type": "powershell",
+      "value": "smbbench",
+      "description": "Account name for Azure Storage Blob container"
+    },
+    {
+      "name": "AZURE_CONTAINER_NAME",
+      "type": "powershell",
+      "value": "fio-results",
+      "description": "Container name for Azure Storage Blobs"
+    },
+    {
+      "name": "AZURE_ACCOUNT_KEY",
+      "type": "powershell",
+      "value": "Ppfj1erZJwwH0aiXp6m4WtvFuGcHVi6AHTn94OSAcVVcRtTGQpdJ3DZVN+pJwU+tWgfp+9PwIzRj+ASt7Mbrrg==",
+      "description": "Account key for Azure Storage Blob container"
+    },
+    {
+      "name": "SMB_SHARE_NAME",
+      "type": "powershell",
+      "value": "mrcooper",
+      "description": "SMB Share name for the benchmark"
+    }
+  ]
+}

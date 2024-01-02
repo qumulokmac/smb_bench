@@ -1,15 +1,9 @@
-  ####################################################################################################
+####################################################################################################
 # SMB Bench Worker Script
 #
 # Author: kmac@qumulo.com
 #
 # Date: 20231229
-#
-# Descr: This script will run on each of the worker hosts
-#   1/ Mount's the A:\ drive for administrative actions
-#   2/ Mount an SMB share to letter drives for each node in the cluster
-#   3/ Launch FIO 
-#   4/ Copy the results to a shared drive
 #
 ####################################################################################################
 param($Cred, $myhost, $sharename, $runname)
@@ -48,6 +42,4 @@ $command = "cmd.exe /c c:\FIO\fio-master\fio.exe --thread --output=`"$ResultFile
 
 Invoke-Expression $command
 Copy-Item -Path $ResultFileName -Destination "F:\results"
-
-
  

@@ -4,6 +4,11 @@ SMB Benchmarking Framework for Azure Native Qumulo leveraging [FIO](https://gith
 ---
 ### This document is still a work in progress (WIP)
 ---
+
+# |
+# | THIS README IS OUT OF DATE, KMac to update. It is better! 
+# |
+
 ##### Included in this repository: 
 
 - Terraform module to deploy the Azure vNet, resource group, subnet, NSG's, VM's, etc

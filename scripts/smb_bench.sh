@@ -1,33 +1,49 @@
 #!/bin/bash 
 ################################################################################
 #
-# make-fiojobs-one-fio.sh
+# smb_bench.sh
 #
 # Author:	kmac@qumulo.com
 # Date:		12/15/2023
 #
-# Wrapper script to create batch and FIO ini files
+# SMB Bench script to create the config files for all workers, distribute them, 
+#	and launch the powershell script that launches FIO on all of the worker hosts.
 #
 ################################################################################
 
-#############################
-# Configurable variables
-#############################
+#######################################################################################
+# README:  Modify the configuration settings in 'ini/smbbench_config.json', not here. 
+#######################################################################################
 
-MOUNTS_PER_CLIENT=16
-FIO_NUM_JOBS=256
+CONFIGFILE='ini/smbbench_config.json'
+if [ ! -e $CONFIGFILE ] 
+then
+	echo "SMB Bench config file $CONFIGFILE does not exist."
+	exit -1
+else
+	result=$(jq -r '.smbbench_settings[] | select(.type == "cygwin" or .type == "global") | "\(.name)=\(.value)"' ini/smbbench_config.json)
+	eval "$result"
+fi
+
+if [[ $UNIQUE_RUN_IDENTIFIER == "" ]]
+then
+	echo "UNIQUE_RUN_IDENTIFIER not set.  Check $CONFIGFILE"
+	exit -2
+fi
+
+if [[ ! -e $FIO_TEMPLATE ]]
+then
+	echo "The FIO Tamplate file $FIO_TEMPLATE does not exist"
+	exit -3
+fi
+
 WORKERS_CONF="ini/workers.conf"
-FIO_TEMPLATE="ini/randrw-50rwmix-20KBbs.ini"
 JOBSUITEDIR="jobsuite"
 POSTSCRIPT="${HOME}/scripts/wincp.sh"
-MYRND="$$$RANDOM"
+MYRND=`date +%Y%m%d%H%m%S`$RANDOM 
 SUFFIX=`echo $FIO_TEMPLATE | sed -e 's|ini/||g'`
 SUITENAME=`echo $FIO_TEMPLATE | sed -e 's|ini\/||g' | sed -e 's/\.ini//g'`
 RESULTDIR="/cygdrive/a/results"
-UNIQUE_RUN_IDENTIFIER="mrcooper"
-###
-# Note: The UNIQUE_RUN_IDENTIFIER should match the same variable name used in the powershell script
-###
 
 #############################
 
@@ -38,7 +54,7 @@ cat $FIO_TEMPLATE
 
 echo ""
 echo "MOUNTS_PER_CLIENT: $MOUNTS_PER_CLIENT"
-echo "FIO_NUM_JOBS: $FIO_NUM_JOBS"
+echo "JOBS_PER_CLIENT: $JOBS_PER_CLIENT"
 echo "Number of worker hosts: `wc -l $WORKERS_CONF`"
 echo ""
 echo "Mounted drives: `df -h`"
@@ -101,9 +117,10 @@ do
 	FIO_RESULTS_FILE="${HOSTS[$hostindex]}_${UNIQUE_RUN_IDENTIFIER}_smbbench-results.json"
 	FIO_INI_FILENAME="${HOSTS[$hostindex]}_${UNIQUE_RUN_IDENTIFIER}_smbbench.ini"
 	cp -p ${FIO_TEMPLATE} "${BASEDIR}/${FIO_INI_FILENAME}"
-
+	cp -p scripts/workerScript.ps1 /cygdrive/a/config/
+	
 	DLCOUNT=0
-	for (( jobid=0; jobid<$FIO_NUM_JOBS; jobid++ ))
+	for (( jobid=0; jobid<$JOBS_PER_CLIENT; jobid++ ))
 	do
 		if [[ $DLCOUNT == $(($MOUNTS_PER_CLIENT-1)) ]]
 		then
@@ -125,6 +142,11 @@ then
 	echo "Running post script $POSTSCRIPT"
 	eval bash ${POSTSCRIPT}
 fi
+
+###
+#
+###
+powershell ./scripts/run_smbbench.ps1
 
 echo "$0 finished at `date`"
 echo ""
