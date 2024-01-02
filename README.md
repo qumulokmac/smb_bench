@@ -5,9 +5,9 @@ SMB Benchmarking Framework for Azure Native Qumulo leveraging [FIO](https://gith
 ### This document is still a work in progress (WIP)
 ---
 
-# |
-# | THIS README IS OUT OF DATE, KMac to update. It is better! 
-# |
+# |                                           | 
+# THIS README IS OUT OF DATE, KMac to update. |
+# |                                           | 
 
 ##### Included in this repository: 
 
