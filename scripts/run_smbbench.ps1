@@ -15,9 +15,7 @@
 #
 #   Prerequisites:
 #      - Update the workers.conf & nodes.conf files in maestro:C:\FIO & A:\config
-#      - Have already ran the script make-fiojobs-one-fio.sh [Cygwin]
-#      - Ensure these directories exist: A:\FIODATA, A:\ini, A:\logs, A:\results 
-#      - Change the values in the configuration section to match your job specifics/credentials
+#      - Change the values in smbbench_config.json match your job specifics/credentials
 #
 ####################################################################################################
 
@@ -40,7 +38,6 @@ $Cred = New-Object System.Management.Automation.PSCredential ($LOCALADMIN_USERNA
 $nodes = [string[]](Get-Content $nodeconf)
 $jobArray = New-Object -TypeName System.Collections.ArrayList
 $maxnodes=(Get-Content $nodeconf | Measure-Object Line).Count
-$DTS = Get-Date -UFormat "%Y/%m/%d/%H"
 
 Clear-Host
  
@@ -81,36 +78,39 @@ foreach($myhost in Get-Content $wrkrconf)
 
   Write-Host ${myhost} -ForegroundColor Cyan
 
-  $job = Invoke-Command -ComputerName $myhost -ScriptBlock $workerScript -ArgumentList $Cred,$myhost,$SMB_SHARE_NAME,$UNIQUE_RUN_IDENTIFIER -Credential $Cred -AsJob -JobName "${myhost}_${UNIQUE_RUN_IDENTIFIER}_fio"
+  $job = Invoke-Command -ComputerName $myhost -ScriptBlock $workerScript -ArgumentList $Cred,$myhost,$SMB_SHARE_NAME,$UNIQUE_RUN_IDENTIFIER -Credential $Cred -AsJob -JobName "${myhost}_${UNIQUE_RUN_IDENTIFIER}"
   $jobArray.Add($job.Id) | Out-Null
   $job | Format-List | Out-File -Width 2000 -FilePath "C:\FIO\${myhost}_${UNIQUE_RUN_IDENTIFIER}_workerscript.out" 
 
 }
-Write-Host "`tWaiting on the fio jobs [${jobArray}] to complete`n" -ForegroundColor Blue -BackgroundColor Yellow 
-Write-Host "`n`n"
+Write-Host -NoNewline "`tWaiting for ALL fio jobs " -ForegroundColor Green
+Write-Host -NoNewline "[${jobArray}]"  -ForegroundColor Magenta
+Write-Host " to complete`n`n"
+
 Wait-Job  $jobArray | Receive-Job
 
 ################################################################################################
 #  Upload results
 ################################################################################################
 
-
 Write-Host "`nGathering results"
 
 $Context = New-AzStorageContext -StorageAccountName $AZURE_ACCOUNT_NAME -StorageAccountKey $AZURE_ACCOUNT_KEY    
+$DTS = Get-Date -UFormat "%Y-%m-%d-%H%M"
 
 foreach($myhost in Get-Content $wrkrconf)
 { 
     ###
     # Uploading the result json file adding JPC to the blob key 
     ###
+
     $FilePath = "A:\results\${myhost}_${UNIQUE_RUN_IDENTIFIER}_smbbench-results.json"
     $FileName = Split-Path -Path $FilePath -Leaf
 
     $jsonContent = Get-Content -Raw -Path $FilePath
     $jsonObject = $jsonContent | ConvertFrom-Json
     $JPC = ($jsonObject.jobs.jobname).Count
-    $BlobName = "${UNIQUE_RUN_IDENTIFIER}/${DTS}/${myhost}/${JPC}-JPC/${FileName}"
+	$BlobName = "${UNIQUE_RUN_IDENTIFIER}/${DTS}/${JPC}-JPC/${myhost}/${myhost}_${DTS}_${UNIQUE_RUN_IDENTIFIER}_${JPC}-JPC-results.json"
 
     Write-Host "Uploading $FilePath to [${AZURE_ACCOUNT_NAME}/${AZURE_CONTAINER_NAME}]/${BlobName}" -ForegroundColor Green 
     Set-AzStorageBlobContent -Container $AZURE_CONTAINER_NAME -File $FilePath -Blob $BlobName -Context $Context -Force  | Out-File -Append -Width 2000 -FilePath "C:\FIO\${myhost}_${UNIQUE_RUN_IDENTIFIER}_azureupload.out"
@@ -120,7 +120,7 @@ foreach($myhost in Get-Content $wrkrconf)
     ###
     $FilePath = "A:\ini\${myhost}_${UNIQUE_RUN_IDENTIFIER}_smbbench.ini"
     $FileName = Split-Path -Path $FilePath -Leaf
-    $BlobName = "${UNIQUE_RUN_IDENTIFIER}/${DTS}/${myhost}/${JPC}-JPC/${FileName}"
+	$BlobName = "${UNIQUE_RUN_IDENTIFIER}/${DTS}/${JPC}-JPC/${myhost}/${myhost}_${DTS}_${UNIQUE_RUN_IDENTIFIER}_${JPC}-JPC-fio.ini"
 
     Write-Host "Uploading $FilePath to [${AZURE_ACCOUNT_NAME}/${AZURE_CONTAINER_NAME}]/${BlobName}" -ForegroundColor Yellow 
     Set-AzStorageBlobContent -Container $AZURE_CONTAINER_NAME -File $FilePath -Blob $BlobName -Context $Context -Force  | Out-File -Append -Width 2000 -FilePath "C:\FIO\${myhost}_${UNIQUE_RUN_IDENTIFIER}_azureupload.out"

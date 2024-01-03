@@ -14,6 +14,13 @@ if [ -z $DIRECTORY ]
 then
   echo "Usage: $0 directory"
   exit 5
+else
+  echo "Sanitizing $DIRECTORY"
+  for file in `find  ${DIRECTORY} -type f -name *.json`
+  do 
+    grep -v 'shared mutexes' ${file} > ${file}.orig
+    mv ${file}.orig ${file}
+ done
 fi
 
 declare TOTAL_READ_IOPS=0
@@ -31,8 +38,8 @@ declare -i NUMJOBS=0
 printf "Analyzing JSON logs in ${DIRECTORY}\n"
 for file in `find ${DIRECTORY} -name "*.json" -type f `
 do
-  BLANK=`jq -r '.jobs | length' ${file} `
-  NUMJOBS=`echo ${NUMJOBS}+${BLANK} | bc`
+  JPC=`jq -r '.jobs | length' ${file} `
+  NUMJOBS=`echo ${NUMJOBS}+${JPC} | bc`
 
   RIOPS=`jq -r '[.. | objects | .read.iops] | add' $file`
   WIOPS=`jq -r '[.. | objects | .write.iops] | add' $file`
@@ -76,6 +83,7 @@ TOTAL_WRITE_LATENCY_P99=$((TOTAL_WRITE_LATENCY_P99/NUMJOBS))
 
 printf "\n\nFIO LOG ANALYSIS FOR: $DIRECTORY\n"
 printf "\tJOB RUNTIME:\t\t\t$TIME_ELAPSED (seconds)\n"
+printf "\tJOBS PER CLIENT:\t\t$JPC\n"
 printf "\tNUMBER FIO JOBS:\t\t$NUMJOBS\n\n"
 
 printf "TOTALS:\n"
@@ -93,3 +101,22 @@ printf "\tMEAN READ LATENCY:\t\t$((TOTAL_READ_LATENCY_MEAN/1000000)) (ms)\n"
 printf "\tMEAN WRITE LATENCY:\t\t$((TOTAL_WRITE_LATENCY_MEAN/1000000)) (ms)\n"
 printf "\tP99 READ LATENCY:\t\t$((TOTAL_READ_LATENCY_P99/1000000)) (ms)\n"
 printf "\tP99 WRITE LATENCY:\t\t$((TOTAL_WRITE_LATENCY_P99/1000000)) (ms)\n"
+
+###
+# CSV cut-n-paste output
+# Total Jobs | Read IOPS	| Write IOPS	| ------ | Read Tput | Write Tput | ------ | Mean Read Latency | Mean Write Latency | P99 Read Latency | P99 Write Latency | 
+###
+printf "\nBelow for spreadsheet import:\n\n"
+
+printf "\"Total Jobs\",\"Read IOPS\",\"Write IOPS\",\"BLANK\",\"Read Tput\",\"Write Tput\",\"BLANK\",\"Mean Read Lat\",\"Mean Write Lat\",\"P99 Read\",\"P99 Write\"\n"
+printf "\"$NUMJOBS\","
+printf "\"$TOTAL_READ_IOPS\","
+printf "\"$TOTAL_WRITE_IOPS\","
+printf "\"BLANK\","
+printf "\"$TOTAL_READ_BW\","
+printf "\"$TOTAL_WRITE_BW\","
+printf "\"BLANK\","
+printf "\"$((TOTAL_READ_LATENCY_MEAN/1000000))\","
+printf "\"$((TOTAL_WRITE_LATENCY_MEAN/1000000))\","
+printf "\"$((TOTAL_READ_LATENCY_P99/1000000))\","
+printf "\"$((TOTAL_WRITE_LATENCY_P99/1000000))\"\n\n\n"
