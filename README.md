@@ -20,7 +20,7 @@ SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
 #### Process to deploy and run an SMB benchmark: 
 
 1. Deploy the environment
-	- Update the terraform *(smb_bench/terraform directory)* file with the specific configuration values for the SMB benchmark you want to run.
+	- Update the terraform config file `variables.tf` *(in the smb_bench/terraform directory)* with the specific configuration values for the SMB benchmark you want to run.
 	- Run: 
 	    - `terraform init`
 	    - `terraform plan -out tfstate`
