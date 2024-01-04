@@ -29,12 +29,12 @@ SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
 	- Note: *Using Bicep until ANQ supports terraform*
 	- Bicep: run bicep/deploy_anq.sh	
 	- Create an SMB share and local user on the qumulo cluster 
-		- `qq auth_add_user --name NAME [-p [PASSWORD]]`
-		- `qq auth_assign_role -r Administrators -t USERNAME`
+		- `qq auth_add_user --name LOCALUSERNAME [-p [PASSWORD]]`
+		- `qq auth_assign_role -r Administrators -t LOCALUSERNAME`
 		- `qq smb_add_share --name YOURSHARENAME --fs-path /YOURSHARENAME --all-access`
 3. *[Optional]* Create the Microsoft Remote Desktop (RDP) profiles following the instructions in the repository at ~/tools/rdp/README.md
 4. Remote Desktop into the Maestro Windows Server
-5. *[Optional]* Configure the Cygwin environment on Maestro
+5. *[Optional]* Configure the Cygwin environment on the Maestro Windows Server
 	- Create the vimfiles directory at `%userprofile%\vimfiles`
 		- DOS: `mkdir  %userprofile%\vimfiles\`
 		- Cygwin: `mkdir /cygdrive/c/Users/mrcooper/vimfiles/`
@@ -42,9 +42,9 @@ SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
 		- DOS: `copy ini/vimrc %userprofile%\vimfiles\`
 		- Cygwin: `cp ~/ini/vimrc /cygdrive/c/Users/mrcooper/vimfiles/`
 	- Close and re-open the cygwin window
-6. Install smb_bench on Maestro
+6. Install smb_bench on Maestro Windows Server
 	- You can `git clone` the [repo](https://github.com/qumulokmac/smb_bench), or just copy the files over manually from your desktop. 
-7. Mount the share on Maestro at A:\ for Administrative purposes 
+7. Mount the share on Maestro Windows Server at A:\ for Administrative purposes 
 
 	`net use /persist:yes A: \\CLUSTER_IP_ADDRESS\SHARENAME`
 
