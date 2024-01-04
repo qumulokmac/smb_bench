@@ -56,8 +56,7 @@ SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
 
 ---
 
-### Screenshots of the tool in use: 
+### SMB Bench process workflow:
 
-
-
+![SMB Bench Process Workflow](https://github.com/qumulokmac/smb_bench/blob/main/docs/)
 
