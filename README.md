@@ -56,6 +56,18 @@ SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
 12.	The results will be uploaded to the Azure Container 
 
 ---
+### Note regarding powershell and the "double-hop" security restriction
+
+This script is intended to be used for benchmarking, thus security has a back-seat.  In order to remote into dozens of windows servers that have remotely mounted SMB shares themselves, you have to solve the double-hop problem.  This has been done for you in this script. 
+
+What is the double-hop issue? Microsoft has it documented [here](https://learn.microsoft.com/en-us/powershell/scripting/learn/remoting/ps-remoting-second-hop?view=powershell-7.40) but here is a laymans explanation: 
+
+- You need 'X' credentials to log into server "A" 
+- Those credentials can be used to log onto remote server "B"
+- But if remote server "B" has its own remote server "C" SMB shares mounted, original server "A" is not allowed to access the remote server "C" resources. 
+- One method around this is to use the Credential Security Support Provider (CredSSP) for authentication.
+- Specific care was used to funnel all remote server "B" actions into a seperate script (called WorkerScript.ps1) invoked in smb_bench. 
+     - The actions include mounting the SMB shares, executing the FIO commands, and copying the results to a shared drive. 
 
 ### SMB Bench process workflow:
 
