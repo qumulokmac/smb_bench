@@ -33,6 +33,8 @@ declare TOTAL_READ_LATENCY_MEAN=0
 declare TOTAL_WRITE_LATENCY_MEAN=0
 declare TOTAL_READ_LATENCY_P99=0
 declare TOTAL_WRITE_LATENCY_P99=0
+declare TOTAL_PEAK_READ_IOPS=0
+declare TOTAL_PEAK_WRITE_IOPS=0
 declare -i NUMJOBS=0
 
 printf "Analyzing JSON logs in ${DIRECTORY}\n"
@@ -46,6 +48,9 @@ do
   READ_BW=`jq -r '[.. | objects | .read.bw] | add' $file`
   WRITE_BW=`jq -r '[.. | objects | .write.bw] | add' $file`
 
+  PRIOPS=`jq -r '[.. | objects | .read.iops_max] | add' $file`
+  PWIOPS=`jq -r '[.. | objects | .write.iops_max] | add' $file`
+
   READ_LATENCY_MEAN=`jq  -r ' [.. | objects | .read.clat_ns.mean] | add' $file`
   WRITE_LATENCY_MEAN=`jq -r ' [.. | objects | .write.clat_ns.mean] | add' $file`
   READ_LATENCY_P99=`jq   -r ' [.. | objects | .read.clat_ns.percentile."99.900000"] | add ' $file`
@@ -53,6 +58,8 @@ do
 
   TOTAL_READ_IOPS=`echo ${TOTAL_READ_IOPS}+${RIOPS} | bc`
   TOTAL_WRITE_IOPS=`echo ${TOTAL_WRITE_IOPS}+${WIOPS} | bc`
+  TOTAL_PEAK_READ_IOPS=`echo ${TOTAL_PEAK_READ_IOPS}+${PRIOPS} | bc`
+  TOTAL_PEAK_WRITE_IOPS=`echo ${TOTAL_PEAK_WRITE_IOPS}+${PWIOPS} | bc`
   TOTAL_READ_BW=`echo ${TOTAL_READ_BW}+${READ_BW} | bc`
   TOTAL_WRITE_BW=`echo ${TOTAL_WRITE_BW}+${WRITE_BW} | bc`
   TIME_ELAPSED=`jq -r '.jobs[0].elapsed' $file`
@@ -66,6 +73,8 @@ done
 
 TOTAL_READ_IOPS=${TOTAL_READ_IOPS%.*}
 TOTAL_WRITE_IOPS=${TOTAL_WRITE_IOPS%.*}
+TOTAL_PEAK_READ_IOPS=${TOTAL_PEAK_READ_IOPS%.*}
+TOTAL_PEAK_WRITE_IOPS=${TOTAL_PEAK_WRITE_IOPS%.*}
 TOTAL_READ_BW=${TOTAL_READ_BW%.*}
 TOTAL_WRITE_BW=${TOTAL_WRITE_BW%.*}
 TOTAL_IOPS=$((TOTAL_READ_IOPS+TOTAL_WRITE_IOPS))
@@ -101,6 +110,10 @@ printf "\tMEAN READ LATENCY:\t\t$((TOTAL_READ_LATENCY_MEAN/1000000)) (ms)\n"
 printf "\tMEAN WRITE LATENCY:\t\t$((TOTAL_WRITE_LATENCY_MEAN/1000000)) (ms)\n"
 printf "\tP99 READ LATENCY:\t\t$((TOTAL_READ_LATENCY_P99/1000000)) (ms)\n"
 printf "\tP99 WRITE LATENCY:\t\t$((TOTAL_WRITE_LATENCY_P99/1000000)) (ms)\n"
+
+printf "\nPEAK (AGGREGATE) IOPS:\n"
+printf "\tPEAK READ IOPS:\t\t\t%'d IOPS\n" $TOTAL_PEAK_READ_IOPS
+printf "\tPEAK WRITE IOPS:\t\t%'d IOPS\n" $TOTAL_PEAK_WRITE_IOPS
 
 ###
 # CSV cut-n-paste output

@@ -6,31 +6,31 @@
     {
       "name": "UNIQUE_RUN_IDENTIFIER",
       "type": "global",
-      "value": "mrcoop-randrw50",
+      "value": "your_id",
       "description": "IMPORTANT! This is the unique identifier for this suite of benchmark tests. Be sure it is succinct & meaningful!"
     },
     {
       "name": "MOUNTS_PER_CLIENT",
       "type": "cygwin",
-      "value": 16,
+      "value": XX,
       "description": "Number of SMB Mounts (Unique drive letters) on each host"
     },
     {
       "name": "FIO_NUM_JOBS",
       "type": "cygwin",
-      "value": 1,
+      "value": NN,
       "description": "Number of FIO Jobs per host (I.e. JOBS_PER_CLIENT)"
     },
     {
       "name": "FIO_TEMPLATE",
       "type": "cygwin",
-      "value": "ini/randrw-50rwmix-20KBbs.ini",
+      "value": "ini/your_fio_remplate.ini",
       "description": "Location of the template for FIO (Typically the global section)"
     },
     {
       "name": "LOCALADMIN_PASSWORD",
       "type": "powershell",
-      "value": "P@55w0rd123!",
+      "value": "YourPasswordHere!",
       "description": "Password for the local windows user running the benchmark"
     },
     {
@@ -54,13 +54,13 @@
     {
       "name": "AZURE_ACCOUNT_KEY",
       "type": "powershell",
-      "value": "Ppfj1erZJwwH0aiXp6m4WtvFuGcHVi6AHTn94OSAcVVcRtTGQpdJ3DZVN+pJwU+tWgfp+9PwIzRj+ASt7Mbrrg==",
+      "value": "YourAzureAccountKeyHere==",
       "description": "Account key for Azure Storage Blob container"
     },
     {
       "name": "SMB_SHARE_NAME",
       "type": "powershell",
-      "value": "mrcooper",
+      "value": "yoursharename",
       "description": "SMB Share name for the benchmark"
     }
   ]
