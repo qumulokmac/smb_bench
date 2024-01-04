@@ -25,7 +25,7 @@ SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
 	    - `terraform init`
 	    - `terraform plan -out tfstate`
 	    - `terraform apply tfstate`
-2. Deploy the ANQ cluster: 
+2. Deploy the ANQ cluster and create a local administrative user account: 
 	- Note: *Using Bicep until ANQ supports terraform*
 	- Bicep: run bicep/deploy_anq.sh	
 	- Create an SMB share and local user on the qumulo cluster 
@@ -46,7 +46,7 @@ SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
 	- You can `git clone` the [repo](https://github.com/qumulokmac/smb_bench), or just copy the files over manually from your desktop. 
 7. Mount the share on Maestro Windows Server at A:\ for Administrative purposes 
 
-	`net use /persist:yes A: \\CLUSTER_IP_ADDRESS\SHARENAME`
+	`net use /persist:yes A: \\CLUSTER_IP_ADDRESS\YOURSHARENAME`
 
 8.	Update the `nodes.conf` and `workers.conf` files with node/worker IP/names 
 	- *Do not use comments or whitespace in the config files*
