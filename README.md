@@ -1,5 +1,7 @@
 # smb_bench
 SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
+> Designed for Azure Native Qumulo SMB Benchmark testing
+
 ---
 
 #### Included in this repository: 
@@ -20,9 +22,9 @@ SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
 1. Deploy the environment
 	- Update the terraform *(smb_bench/terraform directory)* file with the specific configuration values for the SMB benchmark you want to run.
 	- Run: 
-	- `terraform init`
-	- `terraform plan -out tfstate`
-	- `terraform apply tfstate`
+	    - `terraform init`
+	    - `terraform plan -out tfstate`
+	    - `terraform apply tfstate`
 2. Deploy the ANQ cluster: 
 	- Note: *Using Bicep until ANQ supports terraform*
 	- Bicep: run bicep/deploy_anq.sh	
@@ -44,19 +46,18 @@ SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
 	- You can `git clone` the [repo](https://github.com/qumulokmac/smb_bench), or just copy the files over manually from your desktop. 
 7. Mount the share on Maestro at A:\ for Administrative purposes 
 
-
 	`net use /persist:yes A: \\CLUSTER_IP_ADDRESS\SHARENAME`
 
-8.	Update the `nodes.conf` and `workers.conf files with node/worker IP/names 
-	*Do not use comments or whitespace in the config files*
+8.	Update the `nodes.conf` and `workers.conf` files with node/worker IP/names 
+	- *Do not use comments or whitespace in the config files*
 9.	Update the JSON configuration file (`smbbench_config.json`) with your benchmark details
 - Be very specific when you choose a 'unique run identifier', this will be the top-level prefix in the result blob container
-11.	In bash [Cygwin], run `smb_bench.sh and monitor the output. 
+11.	In bash [Cygwin], run `smb_bench.sh` and monitor the output. 
 12.	The results will be uploaded to the Azure Container 
 
 ---
 
 ### SMB Bench process workflow:
 
-![SMB Bench Process Workflow](https://github.com/qumulokmac/smb_bench/blob/main/docs/)
+![SMB Bench Process Workflow](https://github.com/qumulokmac/smb_bench/blob/main/docs/smb_bench_process_workflow.png)
 
