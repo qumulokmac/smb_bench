@@ -15,7 +15,7 @@ then
   echo "Usage: $0 directory"
   exit 5
 else
-  echo "Sanitizing $DIRECTORY"
+  # echo "Sanitizing $DIRECTORY"
   for file in `find  ${DIRECTORY} -type f -name *.json`
   do 
     grep -v 'shared mutexes' ${file} > ${file}.orig
