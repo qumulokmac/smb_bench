@@ -38,15 +38,15 @@ then
 fi
 
 DTS=`date +%Y%m%d%H%m%S` 
-WORKERS_CONF="ini/workers.conf"
-NODES_CONF="ini/nodes.conf"
+WORKERS_CONF='C:\FIO\workers.conf'
+NODES_CONF='C:\FIO\nodes.conf'
 JOBSUITEDIR="jobsuite"
 POSTSCRIPT="${HOME}/scripts/wincp.sh"
 MYRND=`date +%Y%m%d%H%m%S`-${DTS}
 SUFFIX=`echo $FIO_TEMPLATE | sed -e 's|ini/||g'`
 SUITENAME=`echo $FIO_TEMPLATE | sed -e 's|ini\/||g' | sed -e 's/\.ini//g'`
 RESULTDIR="/cygdrive/a/results"
-ARCHIVE="${HOME}/._archive"
+ARCHIVE="/cygdrive/c/FIO/archive"
 
 #############################
 
@@ -116,17 +116,23 @@ done
 
 if [ -e $JOBSUITEDIR ]
 then
-	RENAMETO="${ARCHIVE}/${JOBSUITEDIR}.${MYRND}"
-	echo "Output directory $JOBSUITEDIR exists. Renaming to $RENAMETO"
-	mv  $JOBSUITEDIR $RENAMETO
+	MOVETO="${ARCHIVE}/${JOBSUITEDIR}.${MYRND}"
+	mkdir -p $MOVETO
+	echo "Previous staging directory $JOBSUITEDIR exists, archiving."
+	mv  $JOBSUITEDIR $MOVETO
+	mkdir -p ${JOBSUITEDIR}
+else
+	mkdir -p ${JOBSUITEDIR}
 fi
 
 echo ""
 echo "Checking that the result directory ($RESULTDIR) is available..."
 if [ -e $RESULTDIR ]
 then
-	echo "Prior results directory $RESULTDIR exists, renaming to $RESULTDIR.${MYRND}"
-	mv $RESULTDIR $RESULTDIR.${MYRND}
+	MOVETO="${ARCHIVE}/${RESULTDIR}.${MYRND}"
+	mkdir -p $MOVETO
+	echo "Prior results directory exists, archiving."
+	mv $RESULTDIR $MOVETO
 	mkdir -p ${RESULTDIR}
 else
 	mkdir -p ${RESULTDIR}
@@ -141,7 +147,7 @@ fi
 for (( hostindex=0; hostindex<${#HOSTS[@]}; hostindex++ ))
 do 
   echo "${HOSTS[$hostindex]}"
-  mkdir -p "/cygdrive/a/FIODATA/${HOSTS[$hostindex]}"	${JOBSUITEDIR}
+  mkdir -p "/cygdrive/a/FIODATA/${HOSTS[$hostindex]}"
 
 	FIO_RESULTS_FILE="${HOSTS[$hostindex]}_${UNIQUE_RUN_IDENTIFIER}_smbbench-results.json"
 	FIO_INI_FILENAME="${HOSTS[$hostindex]}_${UNIQUE_RUN_IDENTIFIER}_smbbench.ini"

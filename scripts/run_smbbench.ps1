@@ -1,4 +1,4 @@
-####################################################################################################
+﻿####################################################################################################
 # SMB Bench Main Script run_smbbench.ps1
 #
 # Author: kmac@qumulo.com
@@ -40,7 +40,7 @@ $jobArray = New-Object -TypeName System.Collections.ArrayList
 $maxnodes=(Get-Content $nodeconf | Measure-Object Line).Count
 
 Clear-Host
- 
+
 foreach($myhost in Get-Content $wrkrconf) 
 {
   Write-Host "Unmounting all mapped drives on: "${myhost} -ForegroundColor Green 
@@ -55,17 +55,22 @@ foreach($myhost in Get-Content $wrkrconf)
 { 
 
   Write-Host "${myhost}:" -ForegroundColor Cyan
-  Write-Host "`tMounting the SMB shares on ${myhost}" -ForegroundColor Green
+  Write-Host "`tMounting the A:\ drive on ${myhost}" -ForegroundColor Green
 
   $SMBServer = $nodes[0]
   $myunc = -join("\\", $SMBServer, "\", $SMB_SHARE_NAME)
-  $driveletter = "A"
+
+  if ( Test-Path "filesystem::${myunc}\config\workers.conf" ) { $driveletter = "A" }
+  else{ Write-Host "Cannot verify SMB share ${myunc}, please investigate" ; exit 1 } 
 
   $session = New-PSSession -ComputerName $myhost
 
   $RRun = { 
       param($Cred, $myunc, $driveletter, $myhost)
       New-PSDrive -Name $driveletter -Root $myunc -Persist -PSProvider "FileSystem" -Credential $Cred | out-null
+      ##
+      # Copy the configs locally on remote server
+      ##
       Copy-Item "A:\INI\${myhost}_*", "A:\config\*" -Destination C:\FIO
 
   }
@@ -89,19 +94,20 @@ Write-Host " to complete`n`n"
 
 Wait-Job  $jobArray | Receive-Job
 
+
 ################################################################################################
 #  Upload results
 ################################################################################################
 
 Write-Host "`nGathering results"
 
-$Context = New-AzStorageContext -StorageAccountName $AZURE_ACCOUNT_NAME -StorageAccountKey $AZURE_ACCOUNT_KEY    
-$DTS = Get-Date -UFormat "%Y-%m-%d-%H%M"
+$Context = New-AzStorageContext -StorageAccountName $AZURE_ACCOUNT_NAME -StorageAccountKey $AZURE_ACCOUNT_KEY
+$DTS = Get-Date -UFormat "%Y-%m-%d-%H-%M"
 
 foreach($myhost in Get-Content $wrkrconf)
-{ 
+{
     ###
-    # Uploading the result json file adding JPC to the blob key 
+    # Uploading the result json file adding JPC to the blob key
     ###
 
     $FilePath = "A:\results\${myhost}_${UNIQUE_RUN_IDENTIFIER}_smbbench-results.json"
@@ -110,9 +116,12 @@ foreach($myhost in Get-Content $wrkrconf)
     $jsonContent = Get-Content -Raw -Path $FilePath
     $jsonObject = $jsonContent | ConvertFrom-Json
     $JPC = ($jsonObject.jobs.jobname).Count
-	$BlobName = "${UNIQUE_RUN_IDENTIFIER}/${DTS}/${JPC}-JPC/${myhost}/${myhost}_${DTS}_${UNIQUE_RUN_IDENTIFIER}_${JPC}-JPC-results.json"
 
-    Write-Host "Uploading $FilePath to [${AZURE_ACCOUNT_NAME}/${AZURE_CONTAINER_NAME}]/${BlobName}" -ForegroundColor Green 
+    # User Defined Run Unique ID | QFS_Version | ANQ_node_vmsize | YYYY-MM-DD [HH:SS] | JPC | workers_hostname | full-length-filename.json
+
+        $BlobName = "${UNIQUE_RUN_IDENTIFIER}/${QFS_Version}/${ANQ_node_vmsize}/${DTS}/${JPC}/${myhost}/${UNIQUE_RUN_IDENTIFIER}_${QFS_Version}_${ANQ_node_vmsize}_${DTS}_${JPC}_${myhost}-results.json"
+
+    Write-Host "Uploading $FilePath to [${AZURE_ACCOUNT_NAME}/${AZURE_CONTAINER_NAME}]/${BlobName}" -ForegroundColor Green
     Set-AzStorageBlobContent -Container $AZURE_CONTAINER_NAME -File $FilePath -Blob $BlobName -Context $Context -Force  | Out-File -Append -Width 2000 -FilePath "C:\FIO\${myhost}_${UNIQUE_RUN_IDENTIFIER}_azureupload.out"
 
     ###
@@ -120,10 +129,9 @@ foreach($myhost in Get-Content $wrkrconf)
     ###
     $FilePath = "A:\ini\${myhost}_${UNIQUE_RUN_IDENTIFIER}_smbbench.ini"
     $FileName = Split-Path -Path $FilePath -Leaf
-	$BlobName = "${UNIQUE_RUN_IDENTIFIER}/${DTS}/${JPC}-JPC/${myhost}/${myhost}_${DTS}_${UNIQUE_RUN_IDENTIFIER}_${JPC}-JPC-fio.ini"
+        $BlobName = "${UNIQUE_RUN_IDENTIFIER}/${QFS_Version}/${ANQ_node_vmsize}/${DTS}/${JPC}/${myhost}/${UNIQUE_RUN_IDENTIFIER}_${QFS_Version}_${ANQ_node_vmsize}_${DTS}_${JPC}_${myhost}.ini"
 
-    Write-Host "Uploading $FilePath to [${AZURE_ACCOUNT_NAME}/${AZURE_CONTAINER_NAME}]/${BlobName}" -ForegroundColor Yellow 
+    Write-Host "Uploading $FilePath to [${AZURE_ACCOUNT_NAME}/${AZURE_CONTAINER_NAME}]/${BlobName}" -ForegroundColor Yellow
     Set-AzStorageBlobContent -Container $AZURE_CONTAINER_NAME -File $FilePath -Blob $BlobName -Context $Context -Force  | Out-File -Append -Width 2000 -FilePath "C:\FIO\${myhost}_${UNIQUE_RUN_IDENTIFIER}_azureupload.out"
 
-
-} 
+}

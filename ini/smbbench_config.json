@@ -6,37 +6,49 @@
     {
       "name": "UNIQUE_RUN_IDENTIFIER",
       "type": "global",
-      "value": "your_id",
+      "value": "test-run",
       "description": "IMPORTANT! This is the unique identifier for this suite of benchmark tests. Be sure it is succinct & meaningful!"
     },
     {
       "name": "MOUNTS_PER_CLIENT",
       "type": "cygwin",
-      "value": XX,
+      "value": 4,
       "description": "Number of SMB Mounts (Unique drive letters) on each host"
     },
     {
-      "name": "FIO_NUM_JOBS",
+      "name": "JOBS_PER_CLIENT",
       "type": "cygwin",
-      "value": NN,
+      "value": 256,
       "description": "Number of FIO Jobs per host (I.e. JOBS_PER_CLIENT)"
     },
     {
       "name": "FIO_TEMPLATE",
       "type": "cygwin",
-      "value": "ini/your_fio_remplate.ini",
+      "value": "ini/format-1600MiBfiles.ini",
       "description": "Location of the template for FIO (Typically the global section)"
+    },
+    {
+      "name": "QFS_Version",
+      "type": "global",
+      "value": "v7.0.0",
+      "description": "Version of the Azure Native Qumulo QFS Filesystem"
+    },
+    {
+      "name": "ANQ_node_vmsize",
+      "type": "global",
+      "value": "L8s",
+      "description": "VM Size used for the qumulo ANQ node"
     },
     {
       "name": "LOCALADMIN_PASSWORD",
       "type": "powershell",
-      "value": "YourPasswordHere!",
+      "value": "P@55w0rd123!",
       "description": "Password for the local windows user running the benchmark"
     },
     {
       "name": "LOCALADMIN_USERNAME",
       "type": "powershell",
-      "value": "localadmin",
+      "value": "qumulo",
       "description": "Username for the local windows user running the benchmark"
     },
     {
@@ -54,13 +66,13 @@
     {
       "name": "AZURE_ACCOUNT_KEY",
       "type": "powershell",
-      "value": "YourAzureAccountKeyHere==",
+      "value": "YOUR_KEY_HERE",
       "description": "Account key for Azure Storage Blob container"
     },
     {
       "name": "SMB_SHARE_NAME",
       "type": "powershell",
-      "value": "yoursharename",
+      "value": "test",
       "description": "SMB Share name for the benchmark"
     }
   ]
