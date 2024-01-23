@@ -14,8 +14,8 @@ do
 	for JPC in 1 8 16 32 64 96 128 256
 	do
 	   cd
-	   sed -e "s/XXX/${JPC}/g" ~/kjmtmp/smbbench_config_template.json | sed -e "s/YYY/${inifile}/g" > ~/kjmtmp/.stub.$JPC.inifile	   	   
-	   cp ~/kjmtmp/.stub.$JPC.inifile ~/ini/smbbench_config.json
+	   sed -e "s/XXX/${JPC}/g" ~/tmp/smbbench_config_template.json | sed -e "s/YYY/${inifile}/g" > ~/tmp/.stub.$JPC.inifile	   	   
+	   cp ~/tmp/.stub.$JPC.inifile ~/ini/smbbench_config.json
 	   
 	   echo "Starting smb_bench for $inifile with $JPC JPC's"
 	   ~/smb_bench.sh

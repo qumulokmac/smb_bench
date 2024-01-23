@@ -12,7 +12,7 @@
 ################################################################################
 
 #######################################################################################
-# README:  Modify the configuration settings in 'ini/smbbench_config.json', not here. 
+# User modifiable config fields are now in the ini/smbbench_config.json file
 #######################################################################################
 
 CONFIGFILE='ini/smbbench_config.json'
@@ -37,13 +37,16 @@ then
 	exit -3
 fi
 
+DTS=`date +%Y%m%d%H%m%S` 
 WORKERS_CONF="ini/workers.conf"
+NODES_CONF="ini/nodes.conf"
 JOBSUITEDIR="jobsuite"
 POSTSCRIPT="${HOME}/scripts/wincp.sh"
-MYRND=`date +%Y%m%d%H%m%S`$RANDOM 
+MYRND=`date +%Y%m%d%H%m%S`-${DTS}
 SUFFIX=`echo $FIO_TEMPLATE | sed -e 's|ini/||g'`
 SUITENAME=`echo $FIO_TEMPLATE | sed -e 's|ini\/||g' | sed -e 's/\.ini//g'`
 RESULTDIR="/cygdrive/a/results"
+ARCHIVE="${HOME}/._archive"
 
 #############################
 
@@ -61,6 +64,7 @@ echo "Mounted drives: `df -h`"
 echo "Worker hosts: 	`wc -l $WORKERS_CONF`"
 echo "Proceed? [y|n]"
 read answer
+answer='y'
 case $answer in
 
 	[yY] | [yY][Ee][Ss]	)
@@ -75,13 +79,44 @@ case $answer in
 
   *)
     echo "Hugh?: $answer"
-	#exit 1
+    exit 1
     ;;
 esac
 
+declare -a HOSTS=(`cat $WORKERS_CONF`)
+declare -a NODES=(`cat $NODES_CONF`)
+
+echo ""
+echo "Validating worker hosts network connectivity..."
+echo ""
+
+for (( hostindex=0; hostindex<${#HOSTS[@]}; hostindex++ ))
+do
+  ping -n 2 "${HOSTS[$hostindex]}" >/dev/null
+  if [ $? -ne 0 ]
+  then
+    echo "Worker host ${HOSTS[$hostindex]} is not pingable, please investigate"
+    exit 1
+  fi
+done
+
+echo ""
+echo "Worker hosts are all responging, checking nodes..."
+echo ""
+
+for (( nodeindex=0; nodeindex<${#NODES[@]}; nodeindex++ ))
+do
+  ping -n 2 ${NODES[$nodeindex]} >/dev/null
+  if [ $? -ne 0 ]
+  then
+    echo "NODE ${NODES[$nodeindex]} is not pingable, please investigate"
+    exit 1
+  fi
+done
+
 if [ -e $JOBSUITEDIR ]
 then
-	RENAMETO="$JOBSUITEDIR.${MYRND}"
+	RENAMETO="${ARCHIVE}/${JOBSUITEDIR}.${MYRND}"
 	echo "Output directory $JOBSUITEDIR exists. Renaming to $RENAMETO"
 	mv  $JOBSUITEDIR $RENAMETO
 fi
@@ -103,20 +138,15 @@ then
 	cp ${WORKERS_CONF} /cygdrive/a/config
 fi
 
-DTS=`date +%Y%m%d%H%m%S` 
-declare -a HOSTS=(`cat $WORKERS_CONF`)
-
 for (( hostindex=0; hostindex<${#HOSTS[@]}; hostindex++ ))
 do 
-    echo "${HOSTS[$hostindex]}"
-  	mkdir -p /cygdrive/a/FIODATA/${HOSTS[$hostindex]}
-
-	BASEDIR="${JOBSUITEDIR}"
-	mkdir -p $BASEDIR
+  echo "${HOSTS[$hostindex]}"
+  mkdir -p "/cygdrive/a/FIODATA/${HOSTS[$hostindex]}"	${JOBSUITEDIR}
 
 	FIO_RESULTS_FILE="${HOSTS[$hostindex]}_${UNIQUE_RUN_IDENTIFIER}_smbbench-results.json"
 	FIO_INI_FILENAME="${HOSTS[$hostindex]}_${UNIQUE_RUN_IDENTIFIER}_smbbench.ini"
-	cp -p ${FIO_TEMPLATE} "${BASEDIR}/${FIO_INI_FILENAME}"
+	
+	cp -p ${FIO_TEMPLATE} "${JOBSUITEDIR}/${FIO_INI_FILENAME}"
 	cp -p scripts/workerScript.ps1 /cygdrive/a/config/
 	
 	DLCOUNT=0
@@ -129,10 +159,10 @@ do
 		  DLCOUNT=$((DLCOUNT+1))
 		fi
 		DRIVE_LETTER=`echo $((DLCOUNT+70))| awk '{printf("%c",$1)}'`
-		echo "[job${jobid}]" >> "${BASEDIR}/${FIO_INI_FILENAME}"
-		echo "directory=${DRIVE_LETTER}\\:FIODATA\\${HOSTS[$hostindex]}"  >> "${BASEDIR}/${FIO_INI_FILENAME}"
-		echo "numjobs=1"  >> "${BASEDIR}/${FIO_INI_FILENAME}"
-		echo ""  >> "${BASEDIR}/${FIO_INI_FILENAME}"
+		echo "[job${jobid}]" >> "${JOBSUITEDIR}/${FIO_INI_FILENAME}"
+		echo "directory=${DRIVE_LETTER}\\:FIODATA\\${HOSTS[$hostindex]}"  >> "${JOBSUITEDIR}/${FIO_INI_FILENAME}"
+		echo "numjobs=1"  >> "${JOBSUITEDIR}/${FIO_INI_FILENAME}"
+		echo ""  >> "${JOBSUITEDIR}/${FIO_INI_FILENAME}"
 	done
   done
 echo ""
@@ -143,9 +173,6 @@ then
 	eval bash ${POSTSCRIPT}
 fi
 
-###
-#
-###
 powershell ./scripts/run_smbbench.ps1
 
 echo "$0 finished at `date`"

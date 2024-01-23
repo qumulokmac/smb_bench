@@ -23,7 +23,7 @@
 # User Configuration Section has been moved to smbbench_config.json 
 ####################################################################################################
 
-$jsonString = Get-Content 'C:\cygwin64\home\localadmin\ini\smbbench_config.json' -Raw
+$jsonString = Get-Content 'C:\cygwin64\home\qumulo\ini\smbbench_config.json' -Raw
 $jsonObject = $jsonString | ConvertFrom-Json
 $jsonObject.smbbench_settings | Where-Object { $_.type -eq "powershell" -or $_.type -eq "global" } | ForEach-Object {
     $envVarName = $_.name
@@ -66,7 +66,7 @@ foreach($myhost in Get-Content $wrkrconf)
   $RRun = { 
       param($Cred, $myunc, $driveletter, $myhost)
       New-PSDrive -Name $driveletter -Root $myunc -Persist -PSProvider "FileSystem" -Credential $Cred | out-null
-      Copy-Item "A:\INI\$myhost_*", "A:\config\*" -Destination C:\FIO
+      Copy-Item "A:\INI\${myhost}_*", "A:\config\*" -Destination C:\FIO
 
   }
   Invoke-Command -ComputerName $myhost -ScriptBlock $RRun -ArgumentList $Cred,$myunc,$driveletter,$myhost -Credential $Cred
@@ -127,4 +127,3 @@ foreach($myhost in Get-Content $wrkrconf)
 
 
 } 
- 
