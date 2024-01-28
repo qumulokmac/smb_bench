@@ -21,7 +21,7 @@ Write-Host "Mapping SMB shares on $myhost"  -ForegroundColor yellow
 $index = 5
 $nodeconf = 'C:\FIO\nodes.conf'
 $wrkrconf = 'C:\FIO\workers.conf'
-$maxnodes=(Get-Content $nodeconf | Measure-Object –Line).Count
+$maxnodes=(Get-Content $nodeconf | Measure-Object â€“Line).Count
 $nodes = [string[]](Get-Content $nodeconf)
 
 ####################################################################################################
@@ -29,7 +29,7 @@ $nodes = [string[]](Get-Content $nodeconf)
 foreach ($node in Get-Content $nodeconf) 
 {
     $SMBServer = $nodes[$maxnodes--]
-    $myunc = Join-Path -Path "\\$SMBServer\$sharename" -ChildPath ""
+    $myunc = "\\${SMBServer}\${sharename}"
     $driveletter = [char](65+$index++)
 
     Write-Host "${myhost}`: Mounting SMB share $myunc on ${driveletter}`:" -ForegroundColor yellow
@@ -42,10 +42,10 @@ Write-Host "`nLaunching FIO on $myhost`n" -ForegroundColor yellow
 
 ####################################################################################################
 
-$ResultFileName = "C:\FIO\$myhost\_${runname}_smbbench-results.json"
+$ResultFileName = "C:\FIO\${myhost}_${runname}_smbbench-results.json"
+$IniFileName = "C:\FIO\${myhost}_${runname}_smbbench.ini"
 
-$JPC = (get-content $ResultFileName | select-string -pattern "[job").length
-Write-Host "JPC is ${JPC}" -BackgroundColor White -ForegroundColor DarkMagenta
+$JPC = (Get-Content $IniFileName | Select-String "\[job" -AllMatches).Matches.Count
 
 $command = "cmd.exe /c c:\FIO\fio-master\fio.exe --thread --output=`"$ResultFileName`" --output-format=json C:\FIO\${myhost}_${runname}_smbbench.ini"
 

@@ -116,7 +116,7 @@ done
 
 if [ -e $JOBSUITEDIR ]
 then
-	MOVETO="${ARCHIVE}/${JOBSUITEDIR}.${MYRND}"
+	MOVETO="${ARCHIVE}/ini-${MYRND}"
 	mkdir -p $MOVETO
 	echo "Previous staging directory $JOBSUITEDIR exists, archiving."
 	mv  $JOBSUITEDIR $MOVETO
@@ -129,7 +129,7 @@ echo ""
 echo "Checking that the result directory ($RESULTDIR) is available..."
 if [ -e $RESULTDIR ]
 then
-	MOVETO="${ARCHIVE}/${RESULTDIR}.${MYRND}"
+	MOVETO="${ARCHIVE}/results-${MYRND}"
 	mkdir -p $MOVETO
 	echo "Prior results directory exists, archiving."
 	mv $RESULTDIR $MOVETO
@@ -184,3 +184,4 @@ powershell ./scripts/run_smbbench.ps1
 echo "$0 finished at `date`"
 echo ""
 exit $?
+

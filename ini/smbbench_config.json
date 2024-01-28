@@ -6,7 +6,7 @@
     {
       "name": "UNIQUE_RUN_IDENTIFIER",
       "type": "global",
-      "value": "test-run",
+      "value": "lilly-test",
       "description": "IMPORTANT! This is the unique identifier for this suite of benchmark tests. Be sure it is succinct & meaningful!"
     },
     {
@@ -18,13 +18,13 @@
     {
       "name": "JOBS_PER_CLIENT",
       "type": "cygwin",
-      "value": 256,
+      "value": 128,
       "description": "Number of FIO Jobs per host (I.e. JOBS_PER_CLIENT)"
     },
     {
       "name": "FIO_TEMPLATE",
       "type": "cygwin",
-      "value": "ini/format-1600MiBfiles.ini",
+      "value": "ini/randwrite-100write-1MBbs.ini",
       "description": "Location of the template for FIO (Typically the global section)"
     },
     {
@@ -66,13 +66,13 @@
     {
       "name": "AZURE_ACCOUNT_KEY",
       "type": "powershell",
-      "value": "YOUR_KEY_HERE",
+      "value": "Ppfj1erZJwwH0aiXp6m4WtvFuGcHVi6AHTn94OSAcVVcRtTGQpdJ3DZVN+pJwU+tWgfp+9PwIzRj+ASt7Mbrrg==",
       "description": "Account key for Azure Storage Blob container"
     },
     {
       "name": "SMB_SHARE_NAME",
       "type": "powershell",
-      "value": "test",
+      "value": "lilly",
       "description": "SMB Share name for the benchmark"
     }
   ]
