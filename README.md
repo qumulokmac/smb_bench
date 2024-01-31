@@ -17,7 +17,7 @@ Using [smb_bench](https://github.com/qumulokmac/smb_bench#readme) to benchmark A
 
 ***Note:*** Azure Native Qumulo (ANQ) underwent testing to simulate thousands of users logging in concurrently to replicate an early morning "login storm." This test was done using [smb_bench](https://github.com/qumulokmac/smb_bench#readme) and can be reproduced using a default ANQv2 cluster with the [AVD FIO workload definition](https://github.com/qumulokmac/smb_bench/blob/main/examples/AVD_example_workload.ini) configured for 256 JPC (Jobs Per Client).  
 
-
+---
 
 #### Included in this repository: 
 
