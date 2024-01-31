@@ -6,12 +6,13 @@ SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
 #### Azure Virtual Desktop (AVD) Benchmarking
 Using [smb_bench](https://github.com/qumulokmac/smb_bench#readme) to benchmark Azure Virtual Desktops (AVD) with Azure Native Qumulo (ANQ):
 
-> - Microsoft recommends using FSLogix with their AVD service for serving user profiles.  
+> - Microsoft recommends using [FSLogix](https://learn.microsoft.com/en-us/azure/virtual-desktop/fslogix-containers-azure-files) with AVD for serving user profiles.  
 > - FSLogix stores individual users profile in a VHD/VHDX container which is dynamically attached to the virtual desktop at user login. 
-> - The user acess pattern quickly turns into 95% writes, as statically read content is cached locally. 
+> - AVD user acess patterns morph into a predominately write heavy workload, as statically read content gets [cached locally](https://learn.microsoft.com/en-us/fslogix/concepts-fslogix-cloud-cache). 
 > - Qumulo tested using direct examples from unnamed customers workloads. 
 >    - This should closely match live production workloads running thousands of desktops on ANQ.
 >    - It is common to see the workflow demand 90-95% writes during daily operations at approximately 5-15 IOPS per user, depending on the users intensitiy.
+> Ensure that the ANQ filesystem is in the same region and zone as the AVD session host VMs.
 
 #### Included in this repository: 
 
