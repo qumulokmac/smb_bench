@@ -4,9 +4,8 @@ SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
 
 ---
 #### Azure Virtual Desktop (AVD) Benchmarking
-Customers can use smb_bench to perform benchmarking for their Azure Native Qumulo (ANQ) filesystem for use with Azure Virtual Desktops (AVD).  
+Using [smb_bench](https://github.com/qumulokmac/smb_bench#readme) to benchmark Azure Virtual Desktops (AVD) with Azure Native Qumulo (ANQ):
 
-> **Note regarding the workflow:** 
 > - Microsoft recommends using FSLogix with their AVD service for serving user profiles.  
 > - FSLogix stores individual users profile in a VHD/VHDX container which is dynamically attached to the virtual desktop at user login. 
 > - The user acess pattern quickly turns into 95% writes, as statically read content is cached locally. 
