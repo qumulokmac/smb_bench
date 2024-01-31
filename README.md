@@ -4,15 +4,20 @@ SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
 
 ---
 #### Azure Virtual Desktop (AVD) Benchmarking
-Using [smb_bench](https://github.com/qumulokmac/smb_bench#readme) to benchmark Azure Virtual Desktops (AVD) with Azure Native Qumulo (ANQ):
+Using [smb_bench](https://github.com/qumulokmac/smb_bench#readme) to benchmark Azure Virtual Desktops (AVD) with Azure Native Qumulo (ANQ).
 
 > - Microsoft recommends using [FSLogix](https://learn.microsoft.com/en-us/azure/virtual-desktop/fslogix-containers-azure-files) with AVD for serving user profiles.  
 > - FSLogix stores individual users profile in a VHD/VHDX container which is dynamically attached to the virtual desktop at user login. 
 > - AVD user acess patterns morph into a predominately write heavy workload, as statically read content gets [cached locally](https://learn.microsoft.com/en-us/fslogix/concepts-fslogix-cloud-cache). 
 > - Qumulo tested using direct examples from unnamed customers workloads. 
 >    - This should closely match live production workloads running thousands of desktops on ANQ.
->    - It is common to see the workflow demand 90-95% writes during daily operations at approximately 5-15 IOPS per user, depending on the users intensitiy.
+>    - It is common to see the workflow demand 90-95% writes during daily operations at approximately 5-15 IOPS per user, depending on the users intensitiy. 
+>    - An average IO size typically seen is 20KiB.
 > Ensure that the ANQ filesystem is in the same region and zone as the AVD session host VMs.
+
+***Note:*** Azure Native Qumulo (ANQ) underwent testing to simulate thousands of users logging in concurrently to replicate an early morning "login storm." This test was done using [smb_bench](https://github.com/qumulokmac/smb_bench#readme) and can be reproduced using a default ANQv2 cluster with the [AVD FIO workload definition](https://github.com/qumulokmac/smb_bench/blob/main/examples/AVD_example_workload.ini) configured for 256 JPC (Jobs Per Client).  
+
+
 
 #### Included in this repository: 
 
