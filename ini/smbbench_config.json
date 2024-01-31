@@ -6,13 +6,13 @@
     {
       "name": "UNIQUE_RUN_IDENTIFIER",
       "type": "global",
-      "value": "lilly-test",
+      "value": "seqread-100GBstput", 
       "description": "IMPORTANT! This is the unique identifier for this suite of benchmark tests. Be sure it is succinct & meaningful!"
     },
     {
       "name": "MOUNTS_PER_CLIENT",
       "type": "cygwin",
-      "value": 4,
+      "value": 16,
       "description": "Number of SMB Mounts (Unique drive letters) on each host"
     },
     {
@@ -24,13 +24,13 @@
     {
       "name": "FIO_TEMPLATE",
       "type": "cygwin",
-      "value": "ini/randwrite-100write-1MBbs.ini",
+      "value": "ini/seqread-100GBstput.ini",
       "description": "Location of the template for FIO (Typically the global section)"
     },
     {
       "name": "QFS_Version",
       "type": "global",
-      "value": "v7.0.0",
+      "value": "v7.0.1",
       "description": "Version of the Azure Native Qumulo QFS Filesystem"
     },
     {
@@ -42,7 +42,7 @@
     {
       "name": "LOCALADMIN_PASSWORD",
       "type": "powershell",
-      "value": "P@55w0rd123!",
+      "value": "YOUR_PASSWD",
       "description": "Password for the local windows user running the benchmark"
     },
     {
@@ -66,13 +66,13 @@
     {
       "name": "AZURE_ACCOUNT_KEY",
       "type": "powershell",
-      "value": "Ppfj1erZJwwH0aiXp6m4WtvFuGcHVi6AHTn94OSAcVVcRtTGQpdJ3DZVN+pJwU+tWgfp+9PwIzRj+ASt7Mbrrg==",
+      "value": "YOUR_KEY", 
       "description": "Account key for Azure Storage Blob container"
     },
     {
       "name": "SMB_SHARE_NAME",
       "type": "powershell",
-      "value": "lilly",
+      "value": "blaze",
       "description": "SMB Share name for the benchmark"
     }
   ]

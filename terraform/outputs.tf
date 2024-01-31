@@ -28,14 +28,6 @@ output "resource_group_name" {
   value = azurerm_resource_group.rg.name
 }
 
-output "virtual_network_name" {
-  value = azurerm_virtual_network.vnet.name
-}
-
-output "subnet_name" {
-  value = azurerm_subnet.subnet.name
-}
-
 output "public_ips" {
   value = "${azurerm_public_ip.publicip.*.ip_address}"
 }
@@ -48,4 +40,8 @@ output "private_ips" {
 
 output "azurerm_windows_virtual_machine" {
   value = "${azurerm_windows_virtual_machine.vm.*.name}"
+}
+
+output "azurerm_public_ip" {
+  value = "${azurerm_public_ip.maestro_publicip.*.ip_address}"
 }

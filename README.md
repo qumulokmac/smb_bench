@@ -1,8 +1,18 @@
 # smb_bench
 SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio)
-> Designed for Azure Native Qumulo SMB Benchmark testing
+> Designed for Azure Native Qumulo SMB Benchmark testing for workloads such as AVD
 
 ---
+#### Azure Virtual Desktop (AVD) Benchmarking
+Customers can use smb_bench to perform benchmarking for their Azure Native Qumulo (ANQ) filesystem for use with Azure Virtual Desktops (AVD).  
+
+**Note regarding the workflow:** 
+- Microsoft recommends using FSLogix with their AVD service for serving user profiles.  
+- FSLogix stores individual users profile in a VHD/VHDX container which is dynamically attached to the virtual desktop at user login. 
+- The user acess pattern quickly turns into 95% writes, as statically read content is cached locally. 
+- Qumulo tested using direct examples from unnamed customers workloads. 
+   - This should closely match live production workloads running thousands of desktops on ANQ.
+   - It is common to see the workflow demand 90-95% writes during daily operations at approximately 5-15 IOPS per user, depending on the users intensitiy.
 
 #### Included in this repository: 
 

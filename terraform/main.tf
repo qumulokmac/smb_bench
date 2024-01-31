@@ -16,29 +16,6 @@ resource "azurerm_resource_group" "rg" {
 }
 
 ###
-# vNet
-###
-resource "azurerm_virtual_network" "vnet" {
-  name                = "${var.common_prefix}-vnet"
-  address_space       = ["172.16.0.0/16"]
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  depends_on          = [azurerm_resource_group.rg]
-}
-
-###
-# Subnet
-###
-resource "azurerm_subnet" "subnet" {
-
-  name                 = "${var.common_prefix}-subnet"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["172.16.1.0/24"]
-  depends_on           =  [azurerm_virtual_network.vnet]
-}
-
-###
 # Public IP"s
 ###
 resource "azurerm_public_ip" "publicip" {
@@ -49,7 +26,6 @@ resource "azurerm_public_ip" "publicip" {
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = ["1"]
-  depends_on           = [azurerm_subnet.subnet]
 }
 
 ###
@@ -59,7 +35,6 @@ resource "azurerm_network_security_group" "nsg" {
   name                = "${var.common_prefix}-nsg"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  depends_on           = [azurerm_subnet.subnet]
 
   security_rule {
     name                       = "AllowYOURHomeSSHAccess"
@@ -115,11 +90,10 @@ resource "azurerm_network_interface" "nic" {
   name                = "${var.common_prefix}-nic${count.index}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  depends_on          = [azurerm_subnet.subnet]
 
   ip_configuration {
     name                          = "${var.common_prefix}-niccfg-${count.index}"
-    subnet_id                     = azurerm_subnet.subnet.id
+    subnet_id                     = "${var.worker_subnet}"
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id = "${element(azurerm_public_ip.publicip.*.id, count.index )}"
   }
@@ -132,26 +106,6 @@ resource "azurerm_network_interface_security_group_association" "nic-nsg-assn" {
   count                     = "${var.num_vms}"
   network_interface_id      = "${azurerm_network_interface.nic.*.id[count.index]}"
   network_security_group_id = azurerm_network_security_group.nsg.id
-  depends_on                = [azurerm_subnet.subnet]
-}
-
-###
-# vNet Peering for ANQ access
-###
-resource "azurerm_virtual_network_peering" "wrks2anq-peer" {
-  name                      = "wrks2anq-peer"
-  resource_group_name       = azurerm_resource_group.rg.name
-  virtual_network_name      = azurerm_virtual_network.vnet.name
-  remote_virtual_network_id = "${var.anq_vnet_network_id}"
-  depends_on                = [azurerm_subnet.subnet]
-
-}
-resource "azurerm_virtual_network_peering" "anq2wrks-peer" {
-  name                      = "anq2wrks-peer"
-  resource_group_name       = "${var.anq_resourcegroup}"
-  virtual_network_name      = "${var.anq_vnet}"
-  remote_virtual_network_id = azurerm_virtual_network.vnet.id
-  depends_on                 = [azurerm_subnet.subnet]
 }
 
 ###
@@ -168,10 +122,9 @@ resource "azurerm_windows_virtual_machine" "vm" {
   size                  = "${var.vmsize}" 
   timezone              = "Central Standard Time"
   priority		= "Spot"
-  eviction_policy	= "Delete"
+  eviction_policy	= "Deallocate"
   zone                  = 1
   source_image_id       = "${var.os_image_id}" 
-  depends_on             = [azurerm_virtual_network_peering.wrks2anq-peer,azurerm_virtual_network_peering.anq2wrks-peer]
 
   os_disk {
     name                 = "${var.common_prefix}-osdisk${count.index}"
@@ -191,18 +144,16 @@ resource "azurerm_public_ip" "maestro_publicip" {
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = ["1"]
-  depends_on          = [azurerm_subnet.subnet]
 }
 
 resource "azurerm_network_interface" "maestro_nic" {
   name                = "${var.common_prefix}-maestro-nic"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  depends_on          = [azurerm_subnet.subnet]
 
   ip_configuration {
     name                          = "${var.common_prefix}-maestro-niccfg"
-    subnet_id                     = azurerm_subnet.subnet.id
+    subnet_id                     = "${var.worker_subnet}"
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.maestro_publicip.id
   }
@@ -211,7 +162,6 @@ resource "azurerm_network_interface" "maestro_nic" {
 resource "azurerm_network_interface_security_group_association" "maestro-nic-nsg-assn" {
   network_interface_id      = azurerm_network_interface.maestro_nic.id
   network_security_group_id = azurerm_network_security_group.nsg.id
-  depends_on                = [azurerm_subnet.subnet]
 }
 
 ###
@@ -227,9 +177,10 @@ resource "azurerm_windows_virtual_machine" "maestro_vm" {
   network_interface_ids = [azurerm_network_interface.maestro_nic.id]
   size                  = "${var.vmsize}" 
   timezone              = "Central Standard Time"
+  priority		= "Spot"
+  eviction_policy	= "Deallocate"
   zone                  = 1
   source_image_id       = "${var.os_image_id}" 
-  depends_on             = [azurerm_virtual_network_peering.wrks2anq-peer,azurerm_virtual_network_peering.anq2wrks-peer]
 
   os_disk {
     name                 = "${var.common_prefix}-osdisk"

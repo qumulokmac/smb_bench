@@ -14,6 +14,18 @@
 #
 ################################################################################
 
+echo -n "Testing azure cli configuration..."
+EASYCMD_RC=`az vm list 2>&1 > /dev/null`
+
+if [[ $EASYCMD_RC -ne 0 ]]
+then
+        echo "ERROR: Please run 'az login' and configure Azure credentials."
+        exit 1
+else
+        echo "...configuration valid."
+fi
+
+
 HOST=`hostname`
 if [[ "${HOST}" =~ "maestro" ]]
 then
