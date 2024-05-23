@@ -6,6 +6,18 @@ SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio).
 
 ---
 
+## Table of Contents
+1. [Azure Virtual Desktop (AVD) Benchmarking](#azure-virtual-desktop-avd-benchmarking)
+2. [Included in this repository](#included-in-this-repository)
+3. [Architecture Diagram](#architecture-diagram)
+4. [Process to deploy and run an SMB benchmark](#process-to-deploy-and-run-an-smb-benchmark)
+5. [SMB Bench process workflow](#smb-bench-process-workflow)
+6. [About](#about)
+7. [Resources](#resources)
+8. [License](#license)
+
+---
+
 #### Azure Virtual Desktop (AVD) Benchmarking
 
 Utilizing [smb_bench](https://github.com/qumulokmac/smb_bench#readme) to benchmark Azure Virtual Desktops (AVD) with Azure Native Qumulo (ANQ).
@@ -35,47 +47,62 @@ Utilizing [smb_bench](https://github.com/qumulokmac/smb_bench#readme) to benchma
 
 ---
 
-#### Process to deploy and run an SMB benchmark:
+##### Deploy the Environment
 
-1. Deploy the environment
-	- Update the terraform config file `variables.tf` *(in the smb_bench/terraform directory)* with the specific configuration values for the SMB benchmark you want to run.
-	- Run:
-	    - `terraform init`
-    - Be sure to configure the Blob propertied for downloading the userdata script. 
-    - Upload the userdata script located in `~/scripts/smbbench-custom-data.ps1` to the Azure Blob container you configured above. 
-	    - *Note: Windows only allows for 8192 bytes for a commandline which is why we are using the blob store*
-    - Create the SMB Harness: 
-	    - `terraform plan -out tfstate`
-	    - `terraform apply tfstate`
-2. Deploy the ANQ cluster and create a local administrative user account:
-	- Note: *Using Bicep but you can use whichever method you prefer, such as the REST API.
-		- Bicep: run bicep/deploy_anq.sh
-	- Create an SMB share and local user on the Qumulo cluster
-		- `qq auth_add_user --name LOCALUSERNAME [-p [PASSWORD]]`
-		- `qq auth_assign_role -r Administrators -t LOCALUSERNAME`
-		- `qq smb_add_share --name YOURSHARENAME --fs-path /YOURSHARENAME --all-access`
-3. *[Optional]* Create the Microsoft Remote Desktop (RDP) profiles following the instructions in the repository at ~/tools/rdp/README.md
-4. Remote Desktop into the Maestro Windows Server
-5. *[Optional]* Configure the Cygwin environment on the Maestro Windows Server
-	- Create the vimfiles directory at `%userprofile%\vimfiles`
-		- DOS: `mkdir  %userprofile%\vimfiles\`
-		- Cygwin: `mkdir /cygdrive/c/Users/mrcooper/vimfiles/`
-	- Copy the VIM config file:
-		- DOS: `copy ini/vimrc %userprofile%\vimfiles\`
-		- Cygwin: `cp ~/ini/vimrc /cygdrive/c/Users/mrcooper/vimfiles/`
-	- Close and re-open the Cygwin window
-6. Install smb_bench on Maestro Windows Server
-	- You can `git clone` the [repo](https://github.com/qumulokmac/smb_bench), or just copy the files over manually from your desktop.
-7. Mount the share on Maestro Windows Server at A:\ for automation use in the scripts
+1. **Update Terraform Configuration**:
+- Update the terraform config file `variables.tf` *(in the smb_bench/terraform directory)* with the specific configuration values for the SMB benchmark you want to run.
+- Run:
+    - `terraform init`
+- Be sure to configure the Blob propertied for downloading the userdata script. 
+- Upload the userdata script located in `~/scripts/smbbench-custom-data.ps1` to the Azure Blob container you configured above. 
+    - *Note: Windows only allows for 8192 bytes for a commandline which is why we are using the blob store*
+> Example command:  `az storage blob upload --container-name <container-name> --name smbbench-custom-data.ps1 --file ~/scripts/smbbench-custom-data.ps1`
 
-	`net use /persist:yes A: \\CLUSTER_IP_ADDRESS\YOURSHARENAME`
+- Create the SMB Harness: 
+    - `terraform plan -out tfstate`
+    - `terraform apply tfstate`
 
-8.	Update the `nodes.conf` and `workers.conf` files with node/worker IP/names
-	- *Do not use comments or whitespace in the config files*
-9.	Update the JSON configuration file (`smbbench_config.json`) with your benchmark details
+2. **Deploy the ANQ cluster** 
+- Note: *Using Bicep but you can use whichever method you prefer, such as the REST API.
+	- Bicep: run bicep/deploy_anq.sh
+- Create an SMB share and local user on the Qumulo cluster
+	- `qq auth_add_user --name LOCALUSERNAME [-p [PASSWORD]]`
+	- `qq auth_assign_role -r Administrators -t LOCALUSERNAME`
+	- `qq smb_add_share --name YOURSHARENAME --fs-path /YOURSHARENAME --all-access`
+
+3. **Optional but useful** 
+- Create the Microsoft Remote Desktop (RDP) profiles following the instructions in the repository at ~/tools/rdp/README.md
+- Configure the Cygwin environment on the Maestro Windows Server
+- Create the vimfiles directory at `%userprofile%\vimfiles`
+	- DOS: `mkdir  %userprofile%\vimfiles\`
+	- Cygwin: `mkdir /cygdrive/c/Users/mrcooper/vimfiles/`
+- Copy the VIM config file:
+	- DOS: `copy ini/vimrc %userprofile%\vimfiles\`
+	- Cygwin: `cp ~/ini/vimrc /cygdrive/c/Users/mrcooper/vimfiles/`
+- Close and re-open the Cygwin window
+
+4. **Install the smb_bench repository** 
+- Remote Desktop into the Maestro Windows Server
+- You can `git clone` the [repo](https://github.com/qumulokmac/smb_bench), or just copy the files over manually from your desktop.
+	
+5.  **Mount the automation SMB share** 
+- Mount the share on Maestro Windows Server at A:\ for automation use in the scripts
+`net use /persist:yes A: \\CLUSTER_IP_ADDRESS\YOURSHARENAME`
+
+6.  **Configure node and worker conf files** 
+- Update the `nodes.conf` and `workers.conf` files with node/worker IP/names
+- *Do not use comments or whitespace in the config files*
+
+6.  **Configure the main smbbench config file (JSON)** 
+- Update the JSON configuration file (`smbbench_config.json`) with your benchmark details
 - Be very specific when you choose a 'unique run identifier'; this will be the top-level prefix in the result blob container
-11.	In bash [Cygwin], run `~/smb_bench.sh` and monitor the output.
-12.	The results will be uploaded to the Azure Container you configured in the `smbbench_config.json` file
+
+6.  **Execution** 
+- In bash [Cygwin], run `~/smb_bench.sh` and monitor the output.
+
+7.	**Results**
+- The results will be uploaded to the Azure Container you configured in the `smbbench_config.json` file
+- You can use the script ~/scripts/analyze-fiologs.sh or load them into a spreadsheet/database for analysis.
 
 ---
 
