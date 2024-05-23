@@ -1,6 +1,6 @@
 # SMB Bench
 ---
-##### Harness for running a Windows benchmark at scale, designed to run with Azure Native Qumulo (ANQ)
+#### Harness for running a Windows benchmark at scale, designed to run with Azure Native Qumulo (ANQ)
 
 *SMB Bench leverages [FIO](https://github.com/axboe/fio) for the storage load generator.*
 
@@ -141,6 +141,8 @@ What is the double-hop issue? Microsoft has it documented [here](https://learn.m
 - Specific care was used to funnel all remote server "B" actions into a separate script (called WorkerScript.ps1) invoked in smb_bench.
      - The actions include mounting the SMB shares, executing the FIO commands, and copying the results to a shared drive.
 
+---
+
 #### Note on Azure Virtual Desktops (AVD)
 
 Utilizing [smb_bench](https://github.com/qumulokmac/smb_bench#readme) to benchmark Azure Virtual Desktops (AVD) with Azure Native Qumulo (ANQ).
@@ -155,6 +157,7 @@ Utilizing [smb_bench](https://github.com/qumulokmac/smb_bench#readme) to benchma
 
 ***Note:*** Azure Native Qumulo (ANQ) underwent testing to simulate thousands of users logging in concurrently to replicate an early morning "login storm." This test was conducted using [smb_bench](https://github.com/qumulokmac/smb_bench#readme) and can be reproduced using a default ANQv2 cluster with the [AVD FIO workload definition](https://github.com/qumulokmac/smb_bench/blob/main/examples/AVD_example_workload.ini) configured for 256 JPC (Jobs Per Client).
 
+---
 
 ## About
 
