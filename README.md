@@ -2,7 +2,7 @@
 
 SMB Benchmarking Framework leveraging [FIO](https://github.com/axboe/fio).
 
-> Designed for Azure Native Qumulo SMB Benchmark testing for workloads such as AVD.
+> Designed for Azure Native Qumulo SMB Benchmark testing for workloads, such as AVD.
 
 ---
 
@@ -41,11 +41,15 @@ Utilizing [smb_bench](https://github.com/qumulokmac/smb_bench#readme) to benchma
 	- Update the terraform config file `variables.tf` *(in the smb_bench/terraform directory)* with the specific configuration values for the SMB benchmark you want to run.
 	- Run:
 	    - `terraform init`
+    - Be sure to configure the Blob propertied for downloading the userdata script. 
+    - Upload the userdata script located in `~/scripts/smbbench-custom-data.ps1` to the Azure Blob container you configured above. 
+	    - *Note: Windows only allows for 8192 bytes for a commandline which is why we are using the blob store*
+    - Create the SMB Harness: 
 	    - `terraform plan -out tfstate`
 	    - `terraform apply tfstate`
 2. Deploy the ANQ cluster and create a local administrative user account:
-	- Note: *Using Bicep until ANQ supports terraform*
-	- Bicep: run bicep/deploy_anq.sh
+	- Note: *Using Bicep but you can use whichever method you prefer, such as the REST API.
+		- Bicep: run bicep/deploy_anq.sh
 	- Create an SMB share and local user on the Qumulo cluster
 		- `qq auth_add_user --name LOCALUSERNAME [-p [PASSWORD]]`
 		- `qq auth_assign_role -r Administrators -t LOCALUSERNAME`
@@ -62,7 +66,7 @@ Utilizing [smb_bench](https://github.com/qumulokmac/smb_bench#readme) to benchma
 	- Close and re-open the Cygwin window
 6. Install smb_bench on Maestro Windows Server
 	- You can `git clone` the [repo](https://github.com/qumulokmac/smb_bench), or just copy the files over manually from your desktop.
-7. Mount the share on Maestro Windows Server at A:\ for Administrative purposes
+7. Mount the share on Maestro Windows Server at A:\ for automation use in the scripts
 
 	`net use /persist:yes A: \\CLUSTER_IP_ADDRESS\YOURSHARENAME`
 
@@ -70,12 +74,14 @@ Utilizing [smb_bench](https://github.com/qumulokmac/smb_bench#readme) to benchma
 	- *Do not use comments or whitespace in the config files*
 9.	Update the JSON configuration file (`smbbench_config.json`) with your benchmark details
 - Be very specific when you choose a 'unique run identifier'; this will be the top-level prefix in the result blob container
-11.	In bash [Cygwin], run `smb_bench.sh` and monitor the output.
-12.	The results will be uploaded to the Azure Container
+11.	In bash [Cygwin], run `~/smb_bench.sh` and monitor the output.
+12.	The results will be uploaded to the Azure Container you configured in the `smbbench_config.json` file
 
 ---
 
 ### Note regarding PowerShell and the "double-hop" security restriction
+
+**The userdata script  `~/scripts/smbbench-custom-data.ps1` will configure the Windows server to address this concern. **
 
 This script is intended for benchmarking; thus, security takes a back seat. In order to remote into dozens of windows servers that have remotely mounted SMB shares themselves, you have to solve the double-hop problem. This has been done for you in this script.
 
