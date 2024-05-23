@@ -1,64 +1,74 @@
 ################################################################################
-variable "resource_group_location" {
-  type        = string
-  description = "Microsoft Region/Location"
-  default     = "region"
-}
+#
+# Copyright (c) 2022 Qumulo, Inc. All rights reserved.
+#
+# NOTICE: All information and intellectual property contained herein is the
+# confidential property of Qumulo, Inc. Reproduction or dissemination of the
+# information or intellectual property contained herein is strictly forbidden,
+# unless separate prior written permission has been obtained from Qumulo, Inc.
+#
+#
+# Name:     SMB_Bench 2204 Terraform variables.tf
+# Date:     May 8th, 2024
+# Author:   kmac@qumulo.com
+#
+################################################################################
 
 variable "common_prefix" {
   type        = string
   description = "Prefix for all resources deployed by this project."
-  default     = "yourdemo"
+  default     = "smbbench"
 }
 
 variable "num_vms" {
   type        = number
   description = "Number of VM's"
-  default     = 4
+  default     = 1 
 }
 
 variable "vmsize" {
   type        = string
-  description = "Virtual Machine Size for the Windows Servers"
-  default     = "Standard_D16ls_v5"
+  description = "Virtual Machine Size for the Servers"
+  # default     = "Standard_E32ds_v5"
+  default     = "Standard_E8ds_v5"
 }
 
-variable "os_image_id" {
+variable "admin_username" {
   type        = string
-  description = "Windows Server 2019 Image with no firewall, defender, antivirus, and WSman trusted"
-  default     = "/subscriptions/YOURSUB/resourceGroups/YOURRG/providers/Microsoft.Compute/galleries/YOURGALLERY/images/smb_bench" 
+  description = "Local admin username"
+  default     = "qumulo"
+}
+variable "rgname" {
+  type        = string
+  description = "RG Name "
+  default     = "RESOURCE_GROUP_NAME"
+}
+variable "location" {
+  type        = string
+  description = "Microsoft Region/Location"
+  default     = "REGION"
+}
+
+variable "zone" {
+  type        = string
+  description = "Zone in the region you would like to deploy the Azure Native Qumulo cluster in"
+  default     = "ZONE"
 }
 
 variable "worker_subnet" {
   type        = string
   description = "Subnet to deploy worker VM's too - should be in the same vNet as the ANQ cluster"
-  default     = "/subscriptions/YOURSUB/resourceGroups/YOURRG/providers/Microsoft.Network/virtualNetworks/YOURVNET/subnets/workers"
+  default     = "SUBNET_ID"
 }
 
-
-variable "admin_username" {
-  type        = string
-  description = "Windows local admin username"
-  default     = "qumulo"
+variable "authorized_ip_addresses" {
+  type        = list
+  description = "Ip addresses for the workstations that need access to the harness"
+  default     = ["IP_ADDRESS/32"]
 }
 
 variable "admin_password" {
   type        = string
   description = "Windows local admin password"
-  default     = "YOURPASSWORD"
-}
-variable "remote_allow_ipaddress" {
-  type        = string
-  description = "IP Address for remote admin access for SSH/RDP/HTTP/HTTPS"
-  default     = "YOUR_IPADDRESS"
-}
-variable "anq_vnet_network_id" {
-  type        = string
-  description = "VNet ID for the ANQ network, for peering the networks"
-  default     = "/subscriptions/YOURSUB/resourceGroups/YOURRG/providers/Microsoft.Network/virtualNetworks/YOURVNET"
-}
-variable "anq_resourcegroup" {
-  type        = string
-  description = "Resourcegroup that the ANQ cluster resides in, for peering the networks"
-  default     = "YOURRG"
+  default     = "PASSWORD"
 }

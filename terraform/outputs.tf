@@ -5,14 +5,6 @@
 # Author:   kmac@qumulo.com
 # Desc:     Provision multiple azurerm_windows_virtual_machine's leveraging a prebuilt image
 #
-# variables.tf:
-#   1/ resource_group_location:     Which region to deploy in, E.g. "eastus"
-#   2/ common_prefix:               String to be prepended to all cloud object names created in project
-#   3/ num_vms:                     The number of VM's to deploy
-#   4/ os_image_id                  Image ID to use for the windows OS build
-#   5/ vmsize:  Virtual Machine Size to use, E.g. "Standard_D2s_v3"
-#   6/ admin_username               Windows local admin username
-#   7/ admin_password               Windows local admin password
 #
 # outputs.tf:
 #   - resource_group_name
@@ -24,24 +16,33 @@
 #
 ################################################################################
 
-output "resource_group_name" {
-  value = azurerm_resource_group.rg.name
+
+output "workers_virtual_machine_id" {
+  description = "Workers Virtual Machine ID"
+  value = "${azurerm_windows_virtual_machine.windows_vm.*.name}"
 }
 
-output "public_ips" {
-  value = "${azurerm_public_ip.publicip.*.ip_address}"
+
+output "maestro_virtual_machine_id" {
+  description = "Maestro Virtual Machine ID"
+  value = "${azurerm_windows_virtual_machine.maestro_vm.name}"
 }
 
-output "private_ips" {
-  value = tomap({
-    for name, vm in azurerm_network_interface.nic : name => vm.private_ip_address
-  })
+##########################################################################################
+# Output IP Addresses
+##########################################################################################
+
+output "workers_private_ip_addresses" {
+  description = "Workers Private IP Addresses"
+    value = "${azurerm_windows_virtual_machine.windows_vm.*.private_ip_address}"
 }
 
-output "azurerm_windows_virtual_machine" {
-  value = "${azurerm_windows_virtual_machine.vm.*.name}"
+output "maestro_private_ip_address" {
+  description = "Maestro Private IP Address"
+    value = "${azurerm_windows_virtual_machine.maestro_vm.private_ip_address}"
 }
 
-output "azurerm_public_ip" {
-  value = "${azurerm_public_ip.maestro_publicip.*.ip_address}"
+output "maestro_public_ip_address" {
+  description = "Maestros Public IP Address"
+  value = azurerm_public_ip.maestro_publicip.ip_address
 }

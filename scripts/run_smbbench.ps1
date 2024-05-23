@@ -39,7 +39,7 @@ $nodes = [string[]](Get-Content $nodeconf)
 $jobArray = New-Object -TypeName System.Collections.ArrayList
 $maxnodes=(Get-Content $nodeconf | Measure-Object -Line).Count
 
-#Clear-Host
+Clear-Host
 
 foreach($myhost in Get-Content $wrkrconf)
 {

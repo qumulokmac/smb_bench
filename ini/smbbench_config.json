@@ -6,7 +6,7 @@
     {
       "name": "UNIQUE_RUN_IDENTIFIER",
       "type": "global",
-      "value": "seqread-100GBstput", 
+      "value": "smbbench",
       "description": "IMPORTANT! This is the unique identifier for this suite of benchmark tests. Be sure it is succinct & meaningful!"
     },
     {
@@ -18,61 +18,61 @@
     {
       "name": "JOBS_PER_CLIENT",
       "type": "cygwin",
-      "value": 128,
+      "value": 16,
       "description": "Number of FIO Jobs per host (I.e. JOBS_PER_CLIENT)"
     },
     {
       "name": "FIO_TEMPLATE",
       "type": "cygwin",
-      "value": "ini/seqread-100GBstput.ini",
+      "value": "ini/randwrite-100write-20KiBs.ini",
       "description": "Location of the template for FIO (Typically the global section)"
     },
     {
       "name": "QFS_Version",
       "type": "global",
-      "value": "v7.0.1",
+      "value": "v7.1.0.1",
       "description": "Version of the Azure Native Qumulo QFS Filesystem"
     },
     {
       "name": "ANQ_node_vmsize",
       "type": "global",
-      "value": "L8s",
+      "value": "L16s",
       "description": "VM Size used for the qumulo ANQ node"
     },
     {
       "name": "LOCALADMIN_PASSWORD",
       "type": "powershell",
-      "value": "YOUR_PASSWD",
+      "value": "PASSWORD",
       "description": "Password for the local windows user running the benchmark"
     },
     {
       "name": "LOCALADMIN_USERNAME",
       "type": "powershell",
-      "value": "qumulo",
+      "value": "USERNAME",
       "description": "Username for the local windows user running the benchmark"
     },
     {
       "name": "AZURE_ACCOUNT_NAME",
       "type": "powershell",
-      "value": "smbbench",
+      "value": "SA_NAME",
       "description": "Account name for Azure Storage Blob container"
     },
     {
       "name": "AZURE_CONTAINER_NAME",
       "type": "powershell",
-      "value": "fio-results",
+      "value": "CONTAINER",
       "description": "Container name for Azure Storage Blobs"
     },
     {
       "name": "AZURE_ACCOUNT_KEY",
       "type": "powershell",
-      "value": "YOUR_KEY", 
+      "value": "YOUR_KEY",
       "description": "Account key for Azure Storage Blob container"
     },
     {
       "name": "SMB_SHARE_NAME",
       "type": "powershell",
-      "value": "blaze",
+      "value": "profiles",
       "description": "SMB Share name for the benchmark"
     }
   ]

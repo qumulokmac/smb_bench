@@ -63,7 +63,7 @@ echo ""
 echo "Mounted drives: `df -h`"
 echo "Worker hosts: 	`wc -l $WORKERS_CONF`"
 echo "Proceed? [y|n]"
-read answer
+#read answer
 answer='y'
 case $answer in
 
@@ -144,9 +144,17 @@ then
 	cp ${WORKERS_CONF} /cygdrive/a/config
 fi
 
+mkdir -p "/cygdrive/a/INI"
+
+if [[ ! -e "/cygdrive/a/INI" ]]
+then
+	echo "/cygdrive/a/INI does not exist"
+	exit -1 
+fi
+
 for (( hostindex=0; hostindex<${#HOSTS[@]}; hostindex++ ))
 do 
-  echo "${HOSTS[$hostindex]}"
+  echo "Creating config files for: ${HOSTS[$hostindex]}"
   mkdir -p "/cygdrive/a/FIODATA/${HOSTS[$hostindex]}"
 
 	FIO_RESULTS_FILE="${HOSTS[$hostindex]}_${UNIQUE_RUN_IDENTIFIER}_smbbench-results.json"
@@ -164,7 +172,11 @@ do
 		else
 		  DLCOUNT=$((DLCOUNT+1))
 		fi
-		DRIVE_LETTER=`echo $((DLCOUNT+70))| awk '{printf("%c",$1)}'`
+		DRIVE_LETTER=`echo $((DLCOUNT+69))| awk '{printf("%c",$1)}'`
+		# echo "###"
+		# echo "Using Driveletter $DRIVE_LETTER"
+		# echo "###"
+
 		echo "[job${jobid}]" >> "${JOBSUITEDIR}/${FIO_INI_FILENAME}"
 		echo "directory=${DRIVE_LETTER}\\:FIODATA\\${HOSTS[$hostindex]}"  >> "${JOBSUITEDIR}/${FIO_INI_FILENAME}"
 		echo "numjobs=1"  >> "${JOBSUITEDIR}/${FIO_INI_FILENAME}"
