@@ -1,15 +1,16 @@
 # SMB Bench
-#### Harness for running a Windows benchmark at scale
-#### Designed to run in Azure for Azure Native Qumulo (ANQ)
+---
+##### Harness for running a Windows benchmark at scale, designed to run with Azure Native Qumulo (ANQ)
 
 *SMB Bench leverages [FIO](https://github.com/axboe/fio) for the storage load generator.*
 
----
 ## Table of Contents
 1. [Azure Virtual Desktop (AVD) Benchmarking](#azure-virtual-desktop-avd-benchmarking)
 2. [Included in this Repository](#included-in-this-repository)
 3. [Architecture Diagram](#architecture-diagram)
 4. [Process to Deploy and Run an SMB Benchmark](#process-to-deploy-and-run-an-smb-benchmark)
+   1. [Prerequisites](#prerequisites)
+   2. [Steps](#steps)
 5. [SMB Bench Process Workflow](#smb-bench-process-workflow)
 6. [About](#about)
 7. [Resources](#resources)
@@ -20,9 +21,9 @@
 
 #### Included in this repository
 
-- **Terraform Configuration**: Infrastructure as code for setting up the environment.
-- **Userdata Scripts**: Scripts for customizing VMs.
-- **Bicep Templates**: Templates for deploying resources.
+1. **Terraform Configuration**: Infrastructure as code for setting up the environment.
+1. **Userdata Scripts**: Scripts for customizing VMs.
+1. **Bicep Templates**: Templates for deploying resources.
 
 #### Architecture Diagram:
 ![SMB Bench Architecture Diagram](https://github.com/qumulokmac/smb_bench/blob/main/docs/smb_bench_diagram_anq.png)
@@ -30,9 +31,9 @@
 ## Deployment Process
 ### Prerequisites
 	
-	1. **Azure CLI**: Ensure Azure CLI is installed and configured.
-	2. **Terraform**: Ensure Terraform is installed.
-	3. **Bicep**: Ensure Bicep is installed for deploying resources.
+1. **Azure CLI**: Ensure Azure CLI is installed and configured.
+2. **Terraform**: Ensure Terraform is installed.
+3. **Bicep**: Ensure Bicep is installed for deploying resources.
 	
 ---
 
