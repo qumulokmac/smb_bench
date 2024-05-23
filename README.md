@@ -2,7 +2,7 @@
 ---
 #### Harness for running a Windows benchmark at scale, designed to run with Azure Native Qumulo (ANQ)
 
-*SMB Bench leverages [FIO](https://github.com/axboe/fio) for the storage load generator.*
+> *SMB Bench leverages [FIO](https://github.com/axboe/fio) for the storage load generator.*
 
 ## Table of Contents
 1. [Azure Virtual Desktop (AVD) Benchmarking](#azure-virtual-desktop-avd-benchmarking)
@@ -179,4 +179,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [kmac@qumulo.com](mailto:kmac@qumulo.com)
 - Shiela
 
-*Date: May 22, 2024*
+*Last updated: May 22, 2024*
